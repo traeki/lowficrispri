@@ -12,9 +12,9 @@ THRESHOLD = 50
 SICKLINE = -0.4
 
 # Data Paths
-DIR_PREFIX = '/Users/jsh/gd/proj/20171125_lib2_analysis'
+DIR_PREFIX = os.path.join(os.path.dirname(__file__), '..')
 DATA_DIR = os.path.join(DIR_PREFIX, 'data')
-SCRIPTS_DIR = os.path.join(DIR_PREFIX, 'scripts')
+SCRIPTS_DIR = os.path.join(DIR_PREFIX, 'code')
 OUTPUT_DIR = os.path.join(DIR_PREFIX, 'output')
 
 # Experimental Data

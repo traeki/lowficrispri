@@ -1,20 +1,13 @@
-.. Low-Fi CRISPRi documentation master file, created by
-   sphinx-quickstart on Mon Dec  4 15:46:01 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to Low-Fi CRISPRi's documentation!
-==========================================
+Lab Notebook for Low-Fi CRISPRi Project
+==================================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-
+   experiments/20170402_lib2_ind/20170402_lib2_ind
 
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
