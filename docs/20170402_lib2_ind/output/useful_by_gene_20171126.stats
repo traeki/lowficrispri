@@ -1,0 +1,84 @@
+Post-filter statistics:
+count     12954
+unique        2
+top       False
+freq       9911
+Name: B0_B2, dtype: object
+
+
+Head:
+original              variant             
+AAACAAACGGAGTGTCCACG  AAAAAAACGGAGTGTCCACG     True
+AAAAAAAGAGTAGTTGTTAC  AAAAAAAGAGTAGTTGTTAC    False
+AAAAAAAGGCGATAAAGTTA  AAAAAAAGGCGATAAAGTTA    False
+AAAAAACCATTATCCTTAGC  AAAAAACCAGTAACCTTAGC    False
+                      AAAAAACCAGTATCCTTAAC    False
+Name: B0_B2, dtype: bool
+
+
+Groups:
+          count unique    top freq
+gene_name                         
+accA         51      2  False   39
+accB         51      2  False   39
+accC         51      2  False   38
+accD         51      2  False   44
+acpA         51      2  False   39
+acpS         51      2   True   29
+adk          51      2  False   41
+alaS         51      2  False   45
+alrA         51      2  False   46
+argS         51      2  False   44
+aroE         51      2  False   48
+aroF         51      2  False   34
+aroK         51      1  False   51
+asd          51      2  False   46
+aspS         51      2  False   42
+birA         51      2  False   38
+cca          51      2  False   28
+cdsA         51      2  False   50
+cmk          51      2  False   50
+coaBC        51      2  False   31
+coaD         51      2   True   27
+coaE         51      2  False   49
+cysS         51      2  False   46
+dapA         51      2  False   48
+dapB         51      2  False   42
+dapF         51      2  False   44
+dapG         51      2  False   47
+dapH         51      2  False   46
+dapL         51      2  False   40
+ddl          51      2  False   47
+...         ...    ...    ...  ...
+tilS         51      2  False   36
+tmk          51      2  False   43
+trmD         51      2   True   29
+trmU         51      2  False   36
+trpS         51      2  False   37
+trxA         51      2  False   37
+trxB         51      2  False   40
+tsf          51      2  False   38
+tuaB         51      1  False   51
+tufA         51      2  False   41
+tyrS         51      2  False   38
+uppS         51      2  False   47
+valS         51      2  False   38
+walK         51      2  False   27
+walR         51      2  False   45
+ydiC         51      2  False   31
+ydiO         51      2  False   48
+ydiP         51      2  False   48
+yezG         51      1  False   51
+yhdL         51      1  False   51
+ylaN         51      2   True   31
+yneF         51      2  False   35
+yqaE         51      2  False   30
+yqcF         51      2  False   46
+yqeG         51      2  False   42
+ysxB         51      2  False   39
+ysxC         51      2   True   37
+yumC         51      2  False   47
+yxxD         51      2  False   50
+yxxG         51      2  False   45
+
+[254 rows x 4 columns]
