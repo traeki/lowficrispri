@@ -13,6 +13,7 @@ imperfectly.
    :caption: Contents:
 
    20170402_lib2_ind/index
+   20171205_lib2_ind/index
 
 Indices and tables
 ==================
