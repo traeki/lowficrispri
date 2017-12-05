@@ -1,4 +1,4 @@
-Lab Notebook for Low-Fi CRISPRi Project
+Lab Notebook: Low-Fi CRISPRi
 =======================================
 
 dCas9-gRNA systems have been shown to successfully reduce transcriptional
@@ -12,7 +12,7 @@ imperfectly.
    :maxdepth: 2
    :caption: Contents:
 
-   experiments/experiments
+   20170402_lib2_ind/index
 
 Indices and tables
 ==================

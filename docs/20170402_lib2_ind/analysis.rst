@@ -1,5 +1,5 @@
-Analysis of 20170402 Growth Experiment
-======================================
+Analysis
+========
 
 * Growth of Library 2 (Genome-wide Essential Knockdowns)
 * Full Induction (1% Xylose)
@@ -12,4 +12,3 @@ Analysis of 20170402 Growth Experiment
 
 .. include:: output/useful_by_gene_20171126.notes
 .. image:: output/useful_by_gene_20171126.svg
-
