@@ -20,20 +20,6 @@ Prep
 Setup
 -----
 
--  100 µg/mL Trim (1:100 dilution from 10 mg/mL freezer stock)
-
-   -  EtOH 100:900 -> 100:900
-   -  7.5 ng/mL
-
-      -  75 µL \* (1 mL/1000 µL) \* (100 µg/1 mL) = 7.5 µg
-      -  7.5 µg / L :: 7.5 ng / mL
-      -  37.5 µL in 500 mL media
-
-   -  30 ng/mL
-
-      -  Same math
-      -  150 µL stock in 500 mL media
-
 -  Measure strain library dilutions into LB at OD600 0.01
 
    -  .0005 <- Lib 1
@@ -47,37 +33,26 @@ Setup
 
 -  Prepare back-dilution media
 
-   -  Four kinds of media (collapses to 2 on day 1)
+   -  Two kinds of media
 
       -  Xylose [XN]
-      -  Xylose + Trim [XD]
       -  10/9 Xylose [XNH]
-      -  10/9 Xylose + 10/9 Trim [XDH]
 
-   -  XN/XD
+   -  XN
 
-      -  Draw off 25 mL from 500
+      -  Draw off 50 mL from 1000
+      -  Replace with 50 mL 20% Xylose
 
-   -  XNH/XDH
+   -  XNH
 
       -  Draw off 75 mL from 500
-
-   -  XD/XDH
-
-      -  0/37.5/150 µL Trim (100 µg/mL diluted stock)
-
-   -  All
-
-      -  25 mL 20% Xylose
+      -  add back 25 mL 20% Xylose
 
 -  Total media needed
 
-   -  500 XD
-   -  250 XN
-   -  270 XDH
-   -  135 XNH
+   -  750 XN
+   -  405 XNH
    -  150(+50) LB
-   -  (750/405/200 on day 1)
 
 -  Prepare back-dilution flasks
 

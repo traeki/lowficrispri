@@ -5,15 +5,17 @@ Prep
 ----
 
 -  Print this protocol
--  5 - 500 mL LB medium
--  1 - freezer stock tube of library #4
--  1 - freezer stock tube of library #3
--  1 - freezer stock tube of library #2
--  1 - freezer stock tube of library #1 CONTROLS!
+-  4 x 500 mL LB medium
+-  2 x 100 mL LB medium
+-  1 x freezer stock tube of library #4
+-  1 x freezer stock tube of library #3
+-  1 x freezer stock tube of library #2
+-  1 x freezer stock tube of library #1 CONTROLS!
 -  10 x 1 L baffled flasks
 -  Sample collection materials
 
    -  10 mL pipettes (sterile, disposable)
+   -  25 mL pipettes (sterile, disposable)
    -  spec cuvettes
    -  15 mL falcon conicals
 
@@ -29,11 +31,6 @@ Setup
       -  7.5 µg / L :: 7.5 ng / mL
       -  37.5 µL in 500 mL media
 
-   -  30 ng/mL
-
-      -  Same math
-      -  150 µL stock in 500 mL media
-
 -  Measure strain library dilutions into LB at OD600 0.01
 
    -  .0005 <- Lib 1
@@ -47,7 +44,7 @@ Setup
 
 -  Prepare back-dilution media
 
-   -  Four kinds of media (collapses to 2 on day 1)
+   -  Four kinds of media
 
       -  Xylose [XN]
       -  Xylose + Trim [XD]
@@ -64,7 +61,7 @@ Setup
 
    -  XD/XDH
 
-      -  0/37.5/150 µL Trim (100 µg/mL diluted stock)
+      -  37.5 µL Trim (100 µg/mL diluted stock)
 
    -  All
 
@@ -77,7 +74,6 @@ Setup
    -  270 XDH
    -  135 XNH
    -  150(+50) LB
-   -  (750/405/200 on day 1)
 
 -  Prepare back-dilution flasks
 
