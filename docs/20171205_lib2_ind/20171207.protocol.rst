@@ -24,12 +24,7 @@ Setup
 
 -  100 µg/mL Trim (1:100 dilution from 10 mg/mL freezer stock)
 
-   -  EtOH 100:900 -> 100:900
-   -  7.5 ng/mL
-
-      -  75 µL \* (1 mL/1000 µL) \* (100 µg/1 mL) = 7.5 µg
-      -  7.5 µg / L :: 7.5 ng / mL
-      -  37.5 µL in 500 mL media
+   -  DMSO 100:900 -> 100:900
 
    -  30 ng/mL
 
@@ -66,7 +61,7 @@ Setup
 
    -  XD/XDH
 
-      -  0/37.5/150 µL Trim (100 µg/mL diluted stock)
+      -  150 µL Trim (100 µg/mL diluted stock)
 
    -  All
 
