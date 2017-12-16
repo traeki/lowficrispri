@@ -1,0 +1,56 @@
+*B. subtilis* prep using DNEasy Kit
+===================================
+
+1.  Grow culture to 1-2 OD600 (or just use O/N, possibly diluted)
+
+2.  Spin 1.5 mL for 2 mins, full speed
+
+3.  Discard supernatant carefully using pipet
+
+    -  Cells can be frozen to -20C here if needed
+
+4.  Resuspend pellet in 180 ul lysis buffer
+
+    -  Incubate at 37’C for 30 min
+
+       ::
+
+           20mM Tris-Cl [pH 8.0]
+           2mM EDTA
+           1.2% Triton X-100
+           **40mg/ml lysozyme**
+
+5.  Add 4 ul of RNAse A (100mg/ml)
+
+    -  mix
+    -  incubate at RT for 15 min
+
+6.  Add 25 µl proteinase K and 200 µl buffer AL
+
+    -  VORTEX
+    -  Incubate at 60’C for 30 min
+
+7.  Add 200 µL 100% ethanol
+
+    -  VORTEX
+
+8.  Apply sample to DNeasy column.
+
+    -  1 min @ 6000g
+
+9.  Transfer column to collection tube
+
+10. Wash column with 500 µL AW1
+
+    -  1 min @ 6000g
+
+11. Wash column with 500 µL AW2
+
+    -  3 min @ max
+
+12. Transfer column to clean eppendorf
+
+13. Add 200 µL AE to column
+
+    -  Wait 1 min at room temp
+    -  Spin 1 min at max
