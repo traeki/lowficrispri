@@ -1,2 +1,7 @@
 docs/_build/
 ~$*
+*.gz
+*.fastq.gz
+*.fastq
+*.skipped
+*.weird

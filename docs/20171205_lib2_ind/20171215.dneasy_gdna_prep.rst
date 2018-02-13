@@ -1,5 +1,5 @@
-*B. subtilis* prep using DNEasy Kit
-===================================
+*B. subtilis* gDNA prep using DNEasy Kit
+========================================
 
 1.  Grow culture to 1-2 OD600 (or just use O/N, possibly diluted)
 

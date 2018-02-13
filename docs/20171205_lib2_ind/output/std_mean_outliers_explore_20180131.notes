@@ -1,0 +1,7 @@
+
+Where are the outliers in the ... data.  This question is terribly vague for now.  =(
+The plan, regardless, is to
+* Compute A/B mean/std for each guide.
+* Fit a spline.
+* Divide C - mean(A,B) by std
+* Mask for anything over 2, should be outliers in the 5% bucket

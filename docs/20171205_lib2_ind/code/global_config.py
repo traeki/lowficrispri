@@ -19,16 +19,30 @@ OUTPUT_DIR = os.path.join(DIR_PREFIX, 'output')
 
 # Experimental Data
 # Measured ODs for fitting the growth rate parameter "g"
-OD_VS_TIME = os.path.join(DATA_DIR, '20170125.od.v.time.tsv')
-# Identification of times (in minutes) associated with the samples.
-TIMEPOINTS = pd.Series({0:0, 1:100, 2:195})
-COUNT_GLOB = os.path.join(DATA_DIR, '??_*L003_R1_001.fastq.counts')
+OD_FRAME = os.path.join(DATA_DIR, '20171205.od.v.time.tsv')
+COUNT_GLOB = os.path.join(DATA_DIR, '??d?_*L00*.fastq.counts')
 
 # Background Data
-OLIGO_FILE = os.path.join(DATA_DIR, 'hawk12.oligos')
+OLIGO_FILE = os.path.join(DATA_DIR, 'hawk1234.oligos')
 GENOME = os.path.join(DATA_DIR, 'bsu.NC_000964.gb')
-TARGETFILE = os.path.join(DATA_DIR, 'lib2.targets.tsv')
+TARGETFILE = os.path.join(DATA_DIR, 'lib234.targets.joined.tsv')
 JMPBMK_ANNOS = os.path.join(DATA_DIR,
     './B._subtilis_essential_and_reduced-fitness_genes_20160121.xlsx')
-REPLICATES = [['A0', 'A1', 'A2'],
-              ['B0', 'B1', 'B2']]
+REPLICATES = [['a0d1', 'a1d1', 'a2d1', 'a3d1'],
+              ['b0d1', 'b1d1', 'b2d1', 'b3d1'],
+              ['c0d1', 'c1d1', 'c2d1', 'c3d1'],
+              ['a0d2', 'a1d2', 'a2d2', 'a3d2'],
+              ['b0d2', 'b1d2', 'b2d2', 'b3d2'],
+              ['c0d2', 'c1d2', 'c2d2', 'c3d2'],
+              ['a0d3', 'a1d3', 'a2d3', 'a3d3'],
+              ['b0d3', 'b1d3', 'b2d3', 'b3d3'],
+              ['c0d3', 'c1d3', 'c2d3', 'c3d3']]
+SAMPLES = { 'a0d1':145, 'a1d1':240, 'a2d1':290, 'a3d1':337,
+            'b0d1':145, 'b1d1':240, 'b2d1':290, 'b3d1':337,
+            'c0d1':145, 'c1d1':240, 'c2d1':290, 'c3d1':337,
+            'a0d2':145, 'a1d2':235, 'a2d2':290, 'a3d2':340,
+            'b0d2':145, 'b1d2':235, 'b2d2':290, 'b3d2':340,
+            'c0d2':145, 'c1d2':235, 'c2d2':290, 'c3d2':340,
+            'a0d3':145, 'a1d3':245, 'a2d3':300, 'a3d3':345,
+            'b0d3':145, 'b1d3':245, 'b2d3':300, 'b3d3':345,
+            'c0d3':145, 'c1d3':245, 'c2d3':300, 'c3d3':345  }

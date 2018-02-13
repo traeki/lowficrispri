@@ -1,0 +1,24 @@
+day	tube	time	od	sample	parent	guide	raw_count	anno1	annoN
+1	a	145	.111	t0d1	MMMMM	NNNN	KKKK	bool	str
+
+normalize raw_count column to normal_count
+   -> groupby(day, tube, time).apply(normalization)
+compute log_count
+   -> log normal column
+compute diffs
+   -> get times for each day/tube
+   -> for x < y
+      -> compute t (end - start)
+      -> compute diff allowing for threshold (modified by pseudo)
+      -> subtract logs, filter on threholded raw counts
+
+day	tube	start	end	t	parent	guide	diff
+
+compute gamma:
+
+groupby(day, tube)
+   -> g, _ = np.polyfit(x.time, x.od, 1)
+   -> nullmedian(day, tube, start, end) = diffs.loc[annos.control].median()
+   -> gamma = (diff - nullmedian) / g * t
+
+Figure out how to draw a simple graph again.  :-(
