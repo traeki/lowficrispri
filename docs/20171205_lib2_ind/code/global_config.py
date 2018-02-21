@@ -23,6 +23,7 @@ OD_FRAME = os.path.join(DATA_DIR, '20171205.od.v.time.tsv')
 COUNT_GLOB = os.path.join(DATA_DIR, '??d?_*L00*.fastq.counts')
 
 # Background Data
+ORIG_MAP = os.path.join(DATA_DIR, 'orig_map.tsv')
 OLIGO_FILE = os.path.join(DATA_DIR, 'hawk1234.oligos')
 GENOME = os.path.join(DATA_DIR, 'bsu.NC_000964.gb')
 TARGETFILE = os.path.join(DATA_DIR, 'lib234.targets.joined.tsv')
@@ -37,12 +38,3 @@ REPLICATES = [['a0d1', 'a1d1', 'a2d1', 'a3d1'],
               ['a0d3', 'a1d3', 'a2d3', 'a3d3'],
               ['b0d3', 'b1d3', 'b2d3', 'b3d3'],
               ['c0d3', 'c1d3', 'c2d3', 'c3d3']]
-SAMPLES = { 'a0d1':145, 'a1d1':240, 'a2d1':290, 'a3d1':337,
-            'b0d1':145, 'b1d1':240, 'b2d1':290, 'b3d1':337,
-            'c0d1':145, 'c1d1':240, 'c2d1':290, 'c3d1':337,
-            'a0d2':145, 'a1d2':235, 'a2d2':290, 'a3d2':340,
-            'b0d2':145, 'b1d2':235, 'b2d2':290, 'b3d2':340,
-            'c0d2':145, 'c1d2':235, 'c2d2':290, 'c3d2':340,
-            'a0d3':145, 'a1d3':245, 'a2d3':300, 'a3d3':345,
-            'b0d3':145, 'b1d3':245, 'b2d3':300, 'b3d3':345,
-            'c0d3':145, 'c1d3':245, 'c2d3':300, 'c3d3':345  }
