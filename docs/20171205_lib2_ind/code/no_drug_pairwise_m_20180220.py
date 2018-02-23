@@ -72,7 +72,7 @@ for i, yitem in enumerate(plotsets):
     right = grouper.get_group(yitem)
     merged = pd.merge(left, right, on='variant', suffixes=['_l', '_r'])
     ax = sns.regplot('gamma_l', 'gamma_r', data=merged, fit_reg=False, ax=ax,
-                     scatter_kws=dict(s=sizes, alpha=0.2, color='magenta'))
+                     scatter_kws=dict(s=sizes, alpha=0.05, color='magenta'))
     ax.set_xlim(start, stop)
     ax.set_ylim(start, stop)
     ax.set(xlabel='gamma [' + leftname + ']')
@@ -81,8 +81,8 @@ for i, yitem in enumerate(plotsets):
 
 fig.suptitle('gammas, pairwise plots [No Drug]')
 fig.subplots_adjust(hspace=0, wspace=0)
-logging.info('Writing rich graph to {graphout}'.format(**vars()))
-plt.savefig(graphout)
+# logging.info('Writing rich graph to {graphout}'.format(**vars()))
+# plt.savefig(graphout)
 logging.info('Writing flat graph to {graphflat}'.format(**vars()))
 plt.savefig(graphflat)
 plt.close(fig)
