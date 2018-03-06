@@ -1,0 +1,35 @@
+================================
+META GOAL 1: Design Next Library
+================================
+
+* Identify most phenotypically informative guides in existing set
+* Predict efficacy/information of future guides.
+
+===============================================================
+META GOAL 2: Extract Biological Insight From Growth Experiments
+===============================================================
+
+* Distinguish **Biology** vs. **Noise** vs. **Bias**
+* Ascribe semantics to mathematical **Biology**
+
+=========
+Questions
+=========
+
+1. How can we best estimate growth phenotypes?
+
+  * What is "true gamma"? (gamma is not a fixed point, varies by context.)
+  * Is SVD-smoothing data a good approximation?
+  * How can we validate/evaluate our approximation?
+  * How many components should we retain?
+
+2. How can we best characterize/clean **Noise** and **Bias**?
+
+  * Are noise/bias features reliably *sequestered* by SVD?
+  * Are noise/bias features reliably *separated* by SVD?
+  * Is PCA on transpose matrix a good path to predicting bias?
+
+3. Can we use SVD to separate unknown effects from known effects?
+
+  * In-condition vs. cross-condition (i.e. beak prevention)
+  * Sequence effects vs. gene effects (i.e. guide design)

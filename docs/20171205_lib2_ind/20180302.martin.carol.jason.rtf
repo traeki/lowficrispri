@@ -1,0 +1,60 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 META GOAL 1: Design Next Library\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Identify most phenotypically informative guides in existing set\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Predict efficacy/information of future guides.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 META GOAL 2: Extract Biological Insight From Growth Experiments\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Distinguish {\b Biology} vs. {\b Noise} vs. {\b Bias}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ascribe semantics to mathematical {\b Biology}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Questions\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab How can we best estimate growth phenotypes?\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab What is "true gamma"? (gamma is not a fixed point, varies by context.)\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Is SVD-smoothing data a good approximation?\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab How can we validate/evaluate our approximation?\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab How many components should we retain?\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab How can we best characterize/clean {\b Noise} and {\b Bias}?\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Are noise/bias features reliably {\i sequestered} by SVD?\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Are noise/bias features reliably {\i separated} by SVD?\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Is PCA on transpose matrix a good path to predicting bias?\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Can we use SVD to separate unknown effects from known effects?\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab In-condition vs. cross-condition (i.e. beak prevention)\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Sequence effects vs. gene effects (i.e. guide design)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 Take aways\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab {\b Do heatmaps}\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab of gammas\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab of raw log counts\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab normalize by initial count\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab cluster (if only to make rendering plausible)\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Martin totally digs the transpose-SVD scanning\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Identify\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 \endash \tx360\tab families of selected guides\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 \endash \tx360\tab guides that have whatever putative properties (stretches above threshold for homopolymer, etc.)\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b Map those guides onto the visualization}\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Color those guides based on a non-binary identification (similarity, in family vs. in-gene, etc)\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Where do the other guies fall?\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab If they don't look like they should be included in the same set...\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 \endash \tx360\tab ... {\b Use them as Positive/Negative labels and build discriminators (SVM, ...)}\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Can I collapse out...\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab ... known conditions to get at unexpected dimensions of variation\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Martin cautions that a lot of the "unexpected dimensions" here will simply be a consequence of the complicated nature of {\i doing CRISPRi} technically. That might still be interesting, but it's not driving towards guide selection or "real" biology, for the most part.\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab ... inter-gene variability to get at guide-selection-driven variation\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab ... inter-family dimensions to get at sequence/mismatch-derived variation\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Question left open / defferred, but {\i I} still think it's something to poke at.\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Martin strongly feels that {\b we should be doing something to normalize for per-gene effects.}\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab [To me still] unclear exactly how best to do that "normalization"\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Write a simple algorithm to, given a single gamma ascription, select 2 guides/gene\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Compare that between methods of gamma ascription\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Compare general guide ordering\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Non-parametric, or whatever\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab {\b Evaluate the corner cases.}\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Two methods to start:\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 1.\tx360\tab Go as late as statistically confident (how?)\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 2.\tx360\tab Use PC1\par}
+{\pard \ql \f0 \sa0 \li1440 \fi-360 3.\tx360\tab (Secondary) Use PC1..N\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Do machine learning to predict guide efficacy...\sa180\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab [Not from meeting] Add features (e.g. Nth base...) and re-compute SVD to see if we can find most impactful features\par}
+{\pard \ql \f0 \sa0 \li1080 \fi-360 \bullet \tx360\tab Other decomposers/discriminators/predictors...\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab Compute SVD in either orientation for just actual replicates (e.g. 5 early-phase no-drug gammas). How early do we see interesting variation captured.\sa180\par}
+}
