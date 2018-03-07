@@ -101,6 +101,7 @@ Next goals
 ==========
 
 * Try SVD-painting in sets with unified span/condition.
+
 * Expand painted set by
 
   * family
@@ -175,7 +176,7 @@ relationship betwen span b and span c, but somehow a relationship between span
 a and span c.  Or a relationship between a and b, but not b and a, also bad.
 
 But as long as I get that right, I think that matrix should flatten out the
-"don't care"dimensions.  Now, is there a way to flatten everything *else*?  
+"don't care"dimensions.  Now, is there a way to flatten everything *else*?
 
 Also, that might all be kind of nonsense.  Not sure what M*x really would do,
 here...  Is M really dropping out exactly the stuff in the null space of Y?
