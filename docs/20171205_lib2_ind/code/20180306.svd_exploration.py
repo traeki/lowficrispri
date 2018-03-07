@@ -54,13 +54,20 @@ with open(notesout, 'w') as f:
 # genemap = diffdata.set_index('variant').gene_name
 # genemap = genemap.reset_index().drop_duplicates().set_index('variant')
 
-singlespans = [(i, i+1) for i in range(3)]
+# singlespans = [(i, i+1) for i in range(3)]
+allspans = list()
+for i in range(0, 3):
+  for j in range(i+1, 4):
+    allspans.append((i,j))
 tubes = ['a', 'b', 'c']
 days = ['d1', 'd2', 'd3']
 spanbrackets = list()
-for front, back in singlespans:
+# for front, back in singlespans:
+for front, back in allspans:
   for tube in tubes:
     for day in days:
+      if not ((day == 'd1') or (tube == 'a')):
+        continue
       fsample = '{tube}{front}{day}'.format(**vars())
       bsample = '{tube}{back}{day}'.format(**vars())
       spanbrackets.append((fsample, bsample))
@@ -124,10 +131,10 @@ U_m = np.dot(np.dot(scaled, V_m), S_m_inv)
 colnames = ['WC{i}'.format(**vars()) for i in range(1, subset.shape[1]+1)]
 weights = pd.DataFrame(U_m, index=subset.index, columns=colnames)
 cutoff = weights.std()*4
-hits = weights.abs() > cutoff
-tags = weights.loc[hits.WC1].index.tolist()
+hits = (weights.abs() > cutoff).WC3
+# tags = weights.loc[hits].index.tolist()
 masked = prepped.copy()
-masked['hits'] = hits.WC3
+masked['hits'] = hits
 
 plotsets = list()
 plotsets.append(('a0d1', 'a2d1'))
