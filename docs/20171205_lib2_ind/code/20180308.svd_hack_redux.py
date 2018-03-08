@@ -86,10 +86,6 @@ def flip_signs(A, B):
     signs = np.sign(A) * np.sign(B)
     return A, B * signs
 
-# Generate same principal component with
-#   * sklearn.decomposition.PCA
-#   * numpy.linalg.svd
-
 widediffdata = widen_groups(diffdata)
 cleaned = impute_over_nans(widediffdata)
 scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
@@ -97,20 +93,11 @@ subset = cleaned[all_no_drug_spans()]
 # transposing to scale along the strains, instead of along the measurments
 X = scaler.fit_transform(subset.T)
 
-pca = decomposition.PCA(n_components=3)
-pca.fit(X)
-
 # SVDecompose X directly into USVt
 U, s, Vt = np.linalg.svd(X, full_matrices=False)
 V = Vt.T
 S = np.diag(s)
 
-embed()
-
-# Verify that svd->singular_values match pca->explained_variance_
-n = X.shape[0] # chosen because it works, not sure why this is 'n', though.
-assert np.allclose(((s ** 2) / (n - 1))[:len(pca.explained_variance_)],
-                   pca.explained_variance_)
 # S should be diagonal
 assert np.allclose(S, S.T)
 # V S.T U.T == X.T
@@ -118,10 +105,8 @@ assert np.allclose(V.dot(S.T.dot(U.T)), X.T)
 # U S V.T == X
 assert np.allclose(U.dot(S.dot(V.T)), X)
 
-PC_names = ['PC{0}'.format(i+1) for i in range(len(pca.components_))]
-rated_guides = pd.DataFrame(pca.components_.T,
-                            columns=PC_names,
-                            index=cleaned.index)
+PC_names = ['PC{0}'.format(i+1) for i in range(len(Vt))]
+rated_guides = pd.DataFrame(V, columns=PC_names, index=cleaned.index)
 cutoff = 4*(rated_guides.std())
 hits = rated_guides > cutoff
 masked = cleaned.copy()
@@ -145,7 +130,7 @@ sns.pairplot(masked,
              hue='hits',
              plot_kws=dict(s=5, linewidth=0.5, alpha=0.2))
 plt.suptitle(
-    'gammas, painted by PC3 on strains, direct'.format(**vars()),
+    'gammas, painted by PC3 on strains, via SVD'.format(**vars()),
     fontsize=16)
 plt.tight_layout()
 logging.info('Writing flat graph to {graphflat}'.format(**vars()))
