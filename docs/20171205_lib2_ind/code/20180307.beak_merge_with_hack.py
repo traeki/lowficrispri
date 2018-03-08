@@ -93,21 +93,21 @@ hits = rated_guides > cutoff
 # check_scaled = np.dot(U, np.dot(S, V))
 # C = np.dot(V.T, np.dot(L, V))
 # CC = np.dot(scaled.T, scaled)
-# 
+#
 # masked = prepped.copy()
 # masked['hits'] = hits.PC3
-# 
+#
 # samples = masked.loc[masked.hits].index.tolist()
 # with open(os.path.join(gcf.OUTPUT_DIR, 'beaksamples.txt'), 'w') as f:
 #   f.write('\n'.join(samples))
-# 
+#
 # plotsets = list()
 # plotsets.append(('a0d1', 'a2d1'))
 # plotsets.append(('b0d1', 'b2d1'))
 # plotsets.append(('c0d1', 'c2d1'))
 # plotsets.append(('a0d2', 'a2d2'))
 # plotsets.append(('a0d3', 'a2d3'))
-# 
+#
 # plt.figure(figsize=(6,6))
 # sns.pairplot(masked,
 #              diag_kind='kde',
@@ -120,7 +120,7 @@ hits = rated_guides > cutoff
 # plt.tight_layout()
 # logging.info('Writing flat graph to {graphflat}'.format(**vars()))
 # plt.savefig(graphflat)
-# plt.close() 
+# plt.close()
 
 ##################################
 
@@ -164,7 +164,7 @@ assert np.allclose(*flip_signs(V, principal_axes))
 assert np.allclose(*flip_signs(U.dot(S), principal_components))
 
 # 3) singular values are related to the eigenvalues of covariance matrix
-# assert np.allclose((s ** 2) / (n - 1), l)
+assert np.allclose((s ** 2) / (n - 1), l)
 
 # 8) dimensionality reduction
 k = 3

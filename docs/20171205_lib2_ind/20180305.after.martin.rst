@@ -183,3 +183,62 @@ here...  Is M really dropping out exactly the stuff in the null space of Y?
 
 I might need to **Standardize** my input matrix.  Would this help with current
 PCA efforts?
+
+Reconciling SVD and PCA
+-----------------------
+
+I can confirm that
+
+V S.T U.T = X.T
+
+U S V.T = X
+
+and when I do PCA over the smaller dimension (measurements) I get the same
+components from sklearn.decomposition.PCA as from np.linalg.eig
+
+This implies that the discrepancy is because PCA(X) is not just the direct
+inversion of PCA(X.T) in the way that I've been assuming.
+
+V L V.T is the decomposition of C
+
+V' L' V'.T is the decomposition of C.T
+
+Since
+
+S.T == S
+
+L ~= S**2
+L' ~= S.T**2 = S**2
+
+I expect that
+
+svd(X.T).S ~= svd(X).S
+
+and that, when computable
+
+eig(X).L ~= eig(X.T).L
+
+And it's this last one that is false
+
+Okay, what's the math, here:
+
+L =  S**2/cx
+L' = S**2/cy
+
+cxL = cyL'
+
+L/L' = cy/cx = cc
+
+And yet that's still clearly false.
+
+Alright, so svd decomps are comparable.
+
+eig decomps are SUPER not.  WHY?!?!?
+
+Jesus, ok, finally.  The EIG/SVD/PCA only give the same outcomes if
+StandardScaler is applied **right before the split** into different approaches.
+In other words, I need to call scaler.fit_transform(X.T) in order to use X.T
+consistently.
+
+Oh!  Also!  ONLY USE THE TRANSLATION of the scaler, i.e. set with_std=False,
+otherwise PCA loses the beak.

@@ -6,4 +6,5 @@ docs/_build/
 *.skipped
 *.weird
 *.svg
+*.wav
 *234*data*.tsv
