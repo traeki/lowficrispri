@@ -288,3 +288,6 @@ That might be because:
    * e.g. I don't have the mask I think I do
    * ...or I'm graphing the wrong thing
    * ...or whatever.
+
+Currently I've got two grids, one pre-filtered, one null-masked, not producing
+the same results.  That's very surprising, so next step is figure out why.
