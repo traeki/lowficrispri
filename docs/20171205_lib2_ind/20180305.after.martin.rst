@@ -242,3 +242,49 @@ consistently.
 
 Oh!  Also!  ONLY USE THE TRANSLATION of the scaler, i.e. set with_std=False,
 otherwise PCA loses the beak.
+
+Mathing the Stone
+-----------------
+
+Okay, so now I've got the matrix math working sensibly.
+
+First pass didn't just obviously work correctly, and now I'm trying to figure
+out if that's a math problem, a signal problem, or an execution problem.
+
+The idea is to choose C' (based on C, but that's largely arbitrary), and then:
+
+C' -> V'L'Vt'
+Vt' -> ( X -> U'S'Vt' )
+
+I know that U (non-prime) has interesting features that I want to draw out.
+
+Thus far, U' does not.
+
+That might be because:
+
+1. The math is wrong
+
+   * U'S' = XV' is not a meaningful space to work in
+   * ergo, U' doesn't contain what I want
+   * I need to figure out a transformation M X M.T = X'
+   * "Sy's being lazy" math
+   * X' X'.T = C'
+   * The idea here is that only if all the math works from the top down does any
+     of it make sense, and only the U' derived from SVD(X') makes any sense.
+   * So then what would that transformation be?
+
+2. It's working fine, there's just some reason the data doesn't have this property
+
+   * I've correctly masked
+   * The math works
+   * I'm simply wrong about whether the signal I want is in fact contained in
+     the subspace I've masked onto
+   * If this is true, I should be able to recapitulate the beak analysis by
+     masking into exactly the space that I used to find that signal.
+   * Moreover, those U components should be identical.
+
+3. The math is correct and the signal is there, I've just failed to code
+
+   * e.g. I don't have the mask I think I do
+   * ...or I'm graphing the wrong thing
+   * ...or whatever.
