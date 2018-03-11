@@ -215,7 +215,7 @@ grid = sns.PairGrid(cleaned, vars=fullspans)
 def scatterwrapper(x, y, color, **kwargs):
   plt.scatter(x, y, **kwargs)
 grid.map(scatterwrapper,
-         s=2, linewidth=0.5, alpha=0.5, c=cc.m_hot(colors.PC1))
+         s=2, linewidth=0.5, alpha=0.5, c=cc.m_fire(colors.PC1))
 grid.map_diag(sns.kdeplot, legend=False)
 
 # plt.suptitle(
