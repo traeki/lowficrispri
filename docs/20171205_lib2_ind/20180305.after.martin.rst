@@ -291,3 +291,75 @@ That might be because:
 
 Currently I've got two grids, one pre-filtered, one null-masked, not producing
 the same results.  That's very surprising, so next step is figure out why.
+
+Oh, right.  Centering a sparse matrix is nonsense.  And if we don't center it,
+it won't agree.  Grr.
+
+Matrix math finally working as intended
+---------------------------------------
+
+Reassessed the goal based on earlier ideas and conversation with Sy.
+
+New formulation: If I can specify a set of relations D (vectors in feature space) that capture the set of things I do or don't care about for an analysis, I can use SVD(D) to define the four fundamental subspaces of those constraints, and particularly a basis for im(D) (the things in D's relations) ker(D) (the things invisible to D's relations)
+
+The goal here is:
+
+* ignore signal in expected dimensions to see signal in unexpected
+  dimensions
+* ignore signal in unexpected dimensions to see effect of intended variables
+
+What are "expected dimensions"?
+
+* Variation between two different drug conditions.
+* Variation between two different timespans.
+
+"Unexpected dimensions"?
+
+* Variation between samples at the same span and dose
+
+Other dimensions?
+
+* Variation between same time span on two different days.
+
+Not sure how to create a relation for "variation between".
+
+Correlation between is the complement of variation between.
+
+Define relations as the sets in which I want to capture correlation.  These relations define a space of anticipated correlations.
+
+Things that DO NOT CORRELATE within these relations are variation.
+
+Things that DO CORRELATE in a relation orthogonal to the specified relations would still be in the complement.
+
+Let's try to specify ALL relations that we expect.
+
+* global agreement
+  * (27)
+
+* all samples: dose
+  * (15, 6, 6)
+
+* all samples: span
+  * (9, 9, 9)
+
+* all samples: condition (drug&span)
+  * (5, 5, 5, 2, 2, 2, 2, 2, 2)
+
+* all samples: day
+  * (9, 9, 9)
+
+* all samples: tube
+  * (9, 9, 9)
+
+* all samples: replicate (day&tube)
+  * (3, 3, 3, 3, 3, 3, 3, 3, 3)
+
+Assuming we have F relations:
+
+If we specify a subset of F, D, what's left?
+
+* correlations in F-D
+* correlations in N(F)
+* uncorrelated variation (e.g. c0d1 is a unique snowflake)
+
+This should effectively be N(D)

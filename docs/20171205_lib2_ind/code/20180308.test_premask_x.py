@@ -97,8 +97,11 @@ for column in X.columns:
     continue
   else:
     X[column] = 0
+colnames = X.columns
+rownames = X.index
 X_scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
 X = X_scaler.fit_transform(X.T).T
+X = pd.DataFrame(X, columns=colnames, index=rownames)
 
 # Build C via SVD
 Ux, sx, Vxt = np.linalg.svd(X, full_matrices=False)
@@ -109,9 +112,12 @@ Lx = np.diag((sx**2)/(nx-1))
 Cx = Vx.dot(Lx.dot(Vxt))
 
 # Y is the filtered matrix
-Y_scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
 Y = cleaned[all_no_drug_spans()].copy()
+colnames = Y.columns
+rownames = Y.index
+Y_scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
 Y = Y_scaler.fit_transform(Y.T).T
+Y = pd.DataFrame(Y, columns=colnames, index=rownames)
 
 # Build Cy via SVD
 Uy, sy, Vyt = np.linalg.svd(Y, full_matrices=False)
