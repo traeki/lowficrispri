@@ -164,7 +164,7 @@ exp_rels = np.concatenate([global_rel,
                            dose_rels, span_rels, cond_rels])
 exp_rels = exp_rels.T
 
-D = exp_rels
+D = dose_rels.T
 U, s, Vt = np.linalg.svd(D, full_matrices=True)
 S = np.diag(s)
 Si = np.linalg.pinv(S)
@@ -192,13 +192,13 @@ A_unexpected = pd.DataFrame(A_unexpected, columns=cols, index=rows)
 U_unx, s_unx, Vt_unx = np.linalg.svd(A_unexpected, full_matrices=False)
 V_unx = Vt_unx.T
 
-U_scores = U_unx
+U_scores = U_exp
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
 
-cutoff = 4*(guide_scores.std())
-hits = guide_scores < -cutoff 
+cutoff = 3*(guide_scores.std())
+hits = guide_scores.abs() > cutoff
 masked = cleaned.copy()
 masked['hits'] = hits.PC1
 
@@ -206,12 +206,12 @@ samples = masked.loc[masked.hits].index.tolist()
 # with open(os.path.join(gcf.OUTPUT_DIR, 'beaksamples.txt'), 'w') as f:
 #   f.write('\n'.join(samples))
 
-earlymids = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 2)]
+fullspans = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 3)]
 
 plt.figure(figsize=(6,6))
 sns.pairplot(masked,
              diag_kind='kde',
-             vars=earlymids,
+             vars=fullspans,
              hue='hits',
              plot_kws=dict(s=5, linewidth=0.5, alpha=0.2))
 # plt.suptitle(

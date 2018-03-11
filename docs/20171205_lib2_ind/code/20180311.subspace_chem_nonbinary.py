@@ -3,6 +3,7 @@
 # Author: John Hawkins (jsh) [really@gmail.com]
 import itertools
 import logging
+import colorcet as cc
 import matplotlib.pyplot as plt
 import numpy as np
 import os.path
@@ -14,11 +15,9 @@ import sys
 
 from sklearn import decomposition
 from sklearn import preprocessing
+from sklearn_pandas import DataFrameMapper
 
 import global_config as gcf
-
-import pdb
-from IPython import embed
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
@@ -164,7 +163,7 @@ exp_rels = np.concatenate([global_rel,
                            dose_rels, span_rels, cond_rels])
 exp_rels = exp_rels.T
 
-D = exp_rels
+D = dose_rels.T
 U, s, Vt = np.linalg.svd(D, full_matrices=True)
 S = np.diag(s)
 Si = np.linalg.pinv(S)
@@ -192,28 +191,33 @@ A_unexpected = pd.DataFrame(A_unexpected, columns=cols, index=rows)
 U_unx, s_unx, Vt_unx = np.linalg.svd(A_unexpected, full_matrices=False)
 V_unx = Vt_unx.T
 
-U_scores = U_unx
+U_scores = U_exp
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
+colmaps = [([name,], preprocessing.MaxAbsScaler(), {'alias': name})
+           for name in PC_names]
+ccmapper = DataFrameMapper(colmaps, df_out=True)
+colors = ccmapper.fit_transform(guide_scores.copy())
+# Fold [-1, 1] -> [0, 1]
+colors = colors.abs()
+## Move [-1, 1] -> [0, 1]
+#colors = (colors + 1)/2
 
-cutoff = 4*(guide_scores.std())
-hits = guide_scores < -cutoff 
-masked = cleaned.copy()
-masked['hits'] = hits.PC1
-
-samples = masked.loc[masked.hits].index.tolist()
+# samples = masked.loc[masked.hits > cutoff].index.tolist()
 # with open(os.path.join(gcf.OUTPUT_DIR, 'beaksamples.txt'), 'w') as f:
 #   f.write('\n'.join(samples))
 
-earlymids = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 2)]
-
 plt.figure(figsize=(6,6))
-sns.pairplot(masked,
-             diag_kind='kde',
-             vars=earlymids,
-             hue='hits',
-             plot_kws=dict(s=5, linewidth=0.5, alpha=0.2))
+fullspans = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 3)]
+grid = sns.PairGrid(cleaned, vars=fullspans)
+
+def scatterwrapper(x, y, color, **kwargs):
+  plt.scatter(x, y, **kwargs)
+grid.map(scatterwrapper,
+         s=2, linewidth=0.5, alpha=0.5, c=cc.m_hot(colors.PC1))
+grid.map_diag(sns.kdeplot, legend=False)
+
 # plt.suptitle(
 #     'gammas, checking for agreement'.format(**vars()),
 #     fontsize=16)

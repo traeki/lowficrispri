@@ -359,7 +359,12 @@ Assuming we have F relations:
 If we specify a subset of F, D, what's left?
 
 * correlations in F-D
-* correlations in N(F)
-* uncorrelated variation (e.g. c0d1 is a unique snowflake)
+* correlations in N(F) * uncorrelated variation (e.g. c0d1 is a unique snowflake)
 
 This should effectively be N(D)
+
+HOLY FUCKING SHIT IT WORKS OMG OMG OMG HOLY SHIT
+
+ALSO HOLY FUCKING SHIT
+
+I AM A GOLDEN GOD
