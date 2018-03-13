@@ -418,3 +418,25 @@ onto the returned loci?
 PC1 of im_global(A) should be exactly global.
 
 im_dose(ker_global(A)) should have 3 PCs
+
+20180313 plan
+-------------
+
+Before GM, what are the punchiest and/or most important milestones I could try
+to hit?
+
+* What is the shape of the CONTROL points now?
+  * Can comparison with prior help sell subspace mapping?
+* What is my current best guess at gamma
+  * Can I do anything to characterize the "goodness" of that measure?
+* Try to forward ID the beak
+  * Can I do this with strain-oriented subspace mapping?
+
+Other cool ideas
+++++++++++++++++
+
+* How to best capture "affected genes"?
+* Try coloring a couple of genes (::cough::dfrA::cough::)
+  * In dose v. glob
+  * ...Elsewhere?
+* re-map dose subspace by pair (i.e. force the axes into experimental alignment)

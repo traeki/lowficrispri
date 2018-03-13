@@ -215,7 +215,3 @@ pc2_tail = genes_pc2[-20:]
 
 import IPython
 IPython.embed()
-
-# TODO(jsh): How to best capture "affected genes"?
-# TODO(jsh): Try coloring a couple of genes (::cough::dfrA::cough::)
-# TODO(jsh): What is the shape of the CONTROL points now?
