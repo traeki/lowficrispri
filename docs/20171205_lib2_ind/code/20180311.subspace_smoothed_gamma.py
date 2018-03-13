@@ -71,11 +71,11 @@ cleaned = impute_over_nans(widediffdata)
 starts = cleaned.columns.get_level_values(0)
 ends= cleaned.columns.get_level_values(1)
 pairs = zip(starts, ends)
-minspans = [(s, e) for (s, e) in pairs if (int(e[1]) - int(s[1])) == 1]
-subset = cleaned[minspans]
+# TODO(jsh): Remove this after confirming redundancy
+# minspans = [(s, e) for (s, e) in pairs if (int(e[1]) - int(s[1])) == 1]
 
 def relation(tagger):
-    return [tagger(k) for k in minspans]
+    return [tagger(k) for k in pairs]
 
 def dose_none(k):
   s, e = k
@@ -99,19 +99,6 @@ def dose_high(k):
     return True
   return False
 
-def span_early(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 0
-def span_mid(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 1
-def span_late(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 2
-
 dose_rels = list()
 dose_rels.append(relation(dose_none))
 dose_rels.append(relation(dose_low))
@@ -119,9 +106,15 @@ dose_rels.append(relation(dose_high))
 dose_rels = np.asarray(dose_rels)
 
 span_rels = list()
-span_rels.append(relation(span_early))
-span_rels.append(relation(span_mid))
-span_rels.append(relation(span_late))
+N_TIMEPOINTS = 4
+def build_span(start, end):
+  def span_tagger(k):
+    s, e = k
+    return (int(s[1]) == start) and (int(e[1]) == end)
+  return span_tagger
+for i in range(N_TIMEPOINTS - 1):
+  for j in range(i + 1, N_TIMEPOINTS):
+    span_rels.append(relation(build_span(0, 1)))
 span_rels = np.asarray(span_rels)
 
 cond_rels = list()
@@ -152,7 +145,7 @@ for i in day_rels:
     rep_rels.append(i & j)
 rep_rels = np.asarray(rep_rels)
 
-global_rel = np.ones((1, len(minspans)), dtype=bool)
+global_rel = np.ones((1, len(pairs)), dtype=bool)
 
 all_rels = np.concatenate([global_rel,
                            dose_rels, span_rels, cond_rels,
@@ -163,7 +156,10 @@ exp_rels = np.concatenate([global_rel,
                            dose_rels, span_rels, cond_rels])
 exp_rels = exp_rels.T
 
-D = dose_rels.T
+fitsen_rels = np.concatenate([global_rel, dose_rels])
+fitsen_rels = fitsen_rels.T
+
+D = fitsen_rels
 U, s, Vt = np.linalg.svd(D, full_matrices=True)
 S = np.diag(s)
 Si = np.linalg.pinv(S)
@@ -171,7 +167,7 @@ Si = np.linalg.pinv(S)
 good_mask = ~np.isclose(s, 0)
 rank = sum(good_mask)
 
-A = subset
+A = cleaned
 cols = A.columns
 rows = A.index
 
@@ -195,14 +191,15 @@ U_scores = U_exp
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
-colmaps = [([name,], preprocessing.MaxAbsScaler(), {'alias': name})
-           for name in PC_names]
-ccmapper = DataFrameMapper(colmaps, df_out=True)
-colors = ccmapper.fit_transform(guide_scores.copy())
-# Fold [-1, 1] -> [0, 1]
-colors = colors.abs()
-## Move [-1, 1] -> [0, 1]
-#colors = (colors + 1)/2
+# scaler = preprocessing.MaxAbsScaler()
+scaler = preprocessing.MinMaxScaler()
+colors = scaler.fit_transform(guide_scores)
+colors = pd.DataFrame(colors,
+                      index=guide_scores.index, columns=guide_scores.columns)
+# # Fold [-1, 1] -> [0, 1]
+# colors = colors.abs()
+# # Move [-1, 1] -> [0, 1]
+# colors = (colors + 1)/2
 
 # samples = masked.loc[masked.hits > cutoff].index.tolist()
 # with open(os.path.join(gcf.OUTPUT_DIR, 'beaksamples.txt'), 'w') as f:
@@ -210,7 +207,10 @@ colors = colors.abs()
 
 plt.figure(figsize=(6,6))
 fullspans = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 3)]
-grid = sns.PairGrid(cleaned, vars=fullspans)
+submapped = cleaned.dot(Uspan.dot(Uspan.T)).values
+submapped = pd.DataFrame(submapped,
+                         columns=cleaned.columns, index=cleaned.index)
+grid = sns.PairGrid(submapped, vars=fullspans)
 
 def scatterwrapper(x, y, color, **kwargs):
   plt.scatter(x, y, **kwargs)
@@ -218,9 +218,7 @@ grid.map(scatterwrapper,
          s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno(colors.PC1))
 grid.map_diag(sns.kdeplot, legend=False)
 
-# plt.suptitle(
-#     'gammas, checking for agreement'.format(**vars()),
-#     fontsize=16)
+# plt.suptitle('INSERT OVERALL TITLE HERE'.format(**vars()), fontsize=16)
 plt.tight_layout()
 logging.info('Writing flat graph to {graphflat}'.format(**vars()))
 plt.savefig(graphflat)

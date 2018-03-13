@@ -368,3 +368,53 @@ HOLY FUCKING SHIT IT WORKS OMG OMG OMG HOLY SHIT
 ALSO HOLY FUCKING SHIT
 
 I AM A GOLDEN GOD
+
+Okay, now what to do with it
+----------------------------
+
+Map through "legit" space to find good gammas
+
+* Just ditch noise
+* ditch noise and dose
+* ditch noise and dose and span (need different axis set)
+
+Compare ... rank ordering?
+
+* submapped PC1
+* submapped avg gamma
+* raw avg gamma
+
+What's the best metric for identifying "drugness"?
+
+* First attempt
+
+  * Ditch noise
+  * Separately score dose factor like _chem
+  * draw de-noised with chem score.
+
+* Goal: a super clean version of the "handle", colored
+
+Musings
+-------
+
+I could use this in a staged fashion to sub-partition space.
+
+First, what's global.
+
+Second, what's drug-associated.
+
+Third, what's... etc.
+
+Look at how far into each subspace we have to go to get most of the variance.
+
+* QUESTION: What is the relationship between S and "explained variance"?
+
+Assuming the answer is basically "first PC" for those first two subspaces, plot
+them against each other.
+
+Also, what happens if we round trip through global+drug and map those two PC1s
+onto the returned loci?
+
+PC1 of im_global(A) should be exactly global.
+
+im_dose(ker_global(A)) should have 3 PCs

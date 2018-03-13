@@ -15,7 +15,6 @@ import sys
 
 from sklearn import decomposition
 from sklearn import preprocessing
-from sklearn_pandas import DataFrameMapper
 
 import global_config as gcf
 
@@ -71,11 +70,9 @@ cleaned = impute_over_nans(widediffdata)
 starts = cleaned.columns.get_level_values(0)
 ends= cleaned.columns.get_level_values(1)
 pairs = zip(starts, ends)
-minspans = [(s, e) for (s, e) in pairs if (int(e[1]) - int(s[1])) == 1]
-subset = cleaned[minspans]
 
 def relation(tagger):
-    return [tagger(k) for k in minspans]
+    return [tagger(k) for k in pairs]
 
 def dose_none(k):
   s, e = k
@@ -99,36 +96,29 @@ def dose_high(k):
     return True
   return False
 
-def span_early(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 0
-def span_mid(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 1
-def span_late(k):
-  s, e = k
-  assert 1 == int(e[1]) - int(s[1])
-  return int(s[1]) == 2
-
 dose_rels = list()
 dose_rels.append(relation(dose_none))
 dose_rels.append(relation(dose_low))
 dose_rels.append(relation(dose_high))
-dose_rels = np.asarray(dose_rels)
+dose_rels = np.asarray(dose_rels).T
 
 span_rels = list()
-span_rels.append(relation(span_early))
-span_rels.append(relation(span_mid))
-span_rels.append(relation(span_late))
-span_rels = np.asarray(span_rels)
+N_TIMEPOINTS = 4
+def build_span(start, end):
+  def span_tagger(k):
+    s, e = k
+    return (int(s[1]) == start) and (int(e[1]) == end)
+  return span_tagger
+for i in range(N_TIMEPOINTS - 1):
+  for j in range(i + 1, N_TIMEPOINTS):
+    span_rels.append(relation(build_span(0, 1)))
+span_rels = np.asarray(span_rels).T
 
 cond_rels = list()
-for i in dose_rels:
-  for j in span_rels:
+for i in dose_rels.T:
+  for j in span_rels.T:
     cond_rels.append(i & j)
-cond_rels = np.asarray(cond_rels)
+cond_rels = np.asarray(cond_rels).T
 
 day_rels = list()
 for day in ('d1', 'd2', 'd3'):
@@ -136,7 +126,7 @@ for day in ('d1', 'd2', 'd3'):
     s, e = k
     return s[2:] == day
   day_rels.append(relation(day_match))
-day_rels = np.asarray(day_rels)
+day_rels = np.asarray(day_rels).T
 
 tube_rels = list()
 for tube in ('a', 'b', 'c'):
@@ -144,84 +134,88 @@ for tube in ('a', 'b', 'c'):
     s, e = k
     return s[0] == tube
   tube_rels.append(relation(tube_match))
-tube_rels = np.asarray(tube_rels)
+tube_rels = np.asarray(tube_rels).T
 
 rep_rels = list()
-for i in day_rels:
-  for j in tube_rels:
+for i in day_rels.T:
+  for j in tube_rels.T:
     rep_rels.append(i & j)
-rep_rels = np.asarray(rep_rels)
+rep_rels = np.asarray(rep_rels).T
 
-global_rel = np.ones((1, len(minspans)), dtype=bool)
+global_rel = np.ones((1, len(pairs)), dtype=bool).T
 
 all_rels = np.concatenate([global_rel,
                            dose_rels, span_rels, cond_rels,
-                           day_rels, tube_rels, rep_rels])
-all_rels = all_rels.T
+                           day_rels, tube_rels, rep_rels], axis=1)
 
 exp_rels = np.concatenate([global_rel,
-                           dose_rels, span_rels, cond_rels])
-exp_rels = exp_rels.T
+                           dose_rels, span_rels, cond_rels], axis=1)
 
-D = dose_rels.T
-U, s, Vt = np.linalg.svd(D, full_matrices=True)
-S = np.diag(s)
-Si = np.linalg.pinv(S)
+glob_dose_rels = np.concatenate([global_rel, dose_rels], axis=1)
 
-good_mask = ~np.isclose(s, 0)
-rank = sum(good_mask)
+def im_ker_partition(D):
+  'Returns: im(), ker() for transformation D'
+  U, s, Vt = np.linalg.svd(D, full_matrices=True)
+  rank = (~np.isclose(s, 0)).sum()
+  im_basis, ker_basis = U[:, :rank], U[:, rank:]
+  def image(A):
+    return np.dot(A, np.dot(im_basis, im_basis.T))
+  def kernel(A):
+    return np.dot(A, np.dot(ker_basis, ker_basis.T))
+  return image, kernel
 
-A = subset
-cols = A.columns
-rows = A.index
 
-Uspan = U[:, :rank]
-A_expected = A.dot(Uspan.dot(Uspan.T))
-A_exp_scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
-A_expected = A_exp_scaler.fit_transform(A_expected.T).T
-A_expected = pd.DataFrame(A_expected, columns=cols, index=rows)
-U_exp, s_exp, Vt_exp = np.linalg.svd(A_expected, full_matrices=False)
-V_exp = Vt_exp.T
+image_glob, kernel_glob = im_ker_partition(global_rel)
+image_dose, kernel_dose = im_ker_partition(dose_rels)
+image_both, kernel_both = im_ker_partition(glob_dose_rels)
 
-Unull = U[:, rank:]
-A_unexpected = A.dot(Unull.dot(Unull.T))
-A_unx_scaler = preprocessing.StandardScaler(with_mean=True, with_std=False)
-A_unexpected = A_unx_scaler.fit_transform(A_unexpected.T).T
-A_unexpected = pd.DataFrame(A_unexpected, columns=cols, index=rows)
-U_unx, s_unx, Vt_unx = np.linalg.svd(A_unexpected, full_matrices=False)
-V_unx = Vt_unx.T
+subspace_filtered = image_both(cleaned)
+glob_piece = image_glob(cleaned)
+dose_orthog = image_dose(kernel_glob(cleaned))
+subspace_filtered = pd.DataFrame(subspace_filtered,
+                                 index=cleaned.index,
+                                 columns=cleaned.columns)
+U_glob, s_glob, Vt_glob = np.linalg.svd(glob_piece, full_matrices=False)
+U_dose, s_dose, Vt_dose = np.linalg.svd(dose_orthog, full_matrices=False)
 
-U_scores = U_exp
+U_scores = U_dose
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
-colmaps = [([name,], preprocessing.MaxAbsScaler(), {'alias': name})
-           for name in PC_names]
-ccmapper = DataFrameMapper(colmaps, df_out=True)
-colors = ccmapper.fit_transform(guide_scores.copy())
-# Fold [-1, 1] -> [0, 1]
-colors = colors.abs()
-## Move [-1, 1] -> [0, 1]
-#colors = (colors + 1)/2
-
-# samples = masked.loc[masked.hits > cutoff].index.tolist()
-# with open(os.path.join(gcf.OUTPUT_DIR, 'beaksamples.txt'), 'w') as f:
-#   f.write('\n'.join(samples))
+# scaler = preprocessing.MaxAbsScaler()
+scaler = preprocessing.MinMaxScaler()
+colors = scaler.fit_transform(guide_scores)
+# # Fold [-1, 1] -> [0, 1]
+# colors = colors.abs()
+# # Move [-1, 1] -> [0, 1]
+# colors = (colors + 1)/2
+colors = pd.DataFrame(colors,
+                      index=guide_scores.index,
+                      columns=guide_scores.columns)
 
 plt.figure(figsize=(6,6))
-fullspans = [(s, e) for (s, e) in pairs if (int(s[1]) == 0 and int(e[1]) == 3)]
-grid = sns.PairGrid(cleaned, vars=fullspans)
+plt.scatter(U_glob[:,0], U_dose[:,0],
+            s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno_r(colors.PC2))
 
-def scatterwrapper(x, y, color, **kwargs):
-  plt.scatter(x, y, **kwargs)
-grid.map(scatterwrapper,
-         s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno(colors.PC1))
-grid.map_diag(sns.kdeplot, legend=False)
-
-# plt.suptitle(
-#     'gammas, checking for agreement'.format(**vars()),
-#     fontsize=16)
+# plt.suptitle('INSERT OVERALL TITLE HERE'.format(**vars()), fontsize=16)
 plt.tight_layout()
 logging.info('Writing flat graph to {graphflat}'.format(**vars()))
 plt.savefig(graphflat)
 plt.close()
+
+scored = pd.merge(guide_scores.reset_index(),
+                  diffdata[['variant', 'gene_name']],
+                  on='variant', how='left')
+genes_pc1 = scored.groupby('gene_name').PC1.mean().sort_values()
+pc1_head = genes_pc1[:20]
+pc1_tail = genes_pc1[-20:]
+genes_pc2 = scored.groupby('gene_name').PC2.mean().sort_values()
+pc2_head = genes_pc2[:20]
+pc2_tail = genes_pc2[-20:]
+
+import IPython
+IPython.embed()
+
+# TODO(jsh): How to best capture "affected genes"?
+# TODO(jsh): Try coloring a couple of genes (::cough::dfrA::cough::)
+# TODO(jsh): What is the shape of the CONTROL points now?
