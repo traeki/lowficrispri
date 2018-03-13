@@ -182,23 +182,15 @@ U_scores = U_dose
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
-# scaler = preprocessing.MaxAbsScaler()
-scaler = preprocessing.MinMaxScaler()
-colors = scaler.fit_transform(guide_scores)
-# # Fold [-1, 1] -> [0, 1]
-# colors = colors.abs()
-# # Move [-1, 1] -> [0, 1]
-# colors = (colors + 1)/2
-colors = pd.DataFrame(colors,
-                      index=guide_scores.index,
-                      columns=guide_scores.columns)
+scored = pd.merge(guide_scores.reset_index(),
+                  diffdata[['variant', 'gene_name']],
+                  on='variant', how='left')
+genes_pc1 = scored.groupby('gene_name').PC1.mean().sort_values()
+pc1_head = genes_pc1[:20]
+pc1_tail = genes_pc1[-20:]
+genes_pc2 = scored.groupby('gene_name').PC2.mean().sort_values()
+pc2_head = genes_pc2[:20]
+pc2_tail = genes_pc2[-20:]
 
-plt.figure(figsize=(6,6))
-plt.scatter(U_glob[:,0], U_dose[:,0],
-            s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno_r(colors.PC2))
-
-# plt.suptitle('INSERT OVERALL TITLE HERE'.format(**vars()), fontsize=16)
-plt.tight_layout()
-logging.info('Writing flat graph to {graphflat}'.format(**vars()))
-plt.savefig(graphflat)
-plt.close()
+import IPython
+IPython.embed()
