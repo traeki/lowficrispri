@@ -426,7 +426,8 @@ Before GM, what are the punchiest and/or most important milestones I could try
 to hit?
 
 * What is the shape of the CONTROL points now?
-  * Can comparison with prior help sell subspace mapping?
+  * Can I rescale my "only component" in global space in alignment with scale
+    of gammas? [YES]
 * What is my current best guess at gamma
   * Can I do anything to characterize the "goodness" of that measure?
 * Try to forward ID the beak
@@ -440,3 +441,24 @@ Other cool ideas
   * In dose v. glob
   * ...Elsewhere?
 * re-map dose subspace by pair (i.e. force the axes into experimental alignment)
+* Would we get better gammas if we somehow factored in information specific to
+  the final span?
+  * This kind of question would be nice to have a harness for.
+  * I.e. compute a metric over a powerset of possible subspace inclusions
+
+Outcomes
+********
+
+* CONTROL points after mapping through "uniformity" space have a slightly
+  *larger* stddev than the pre-mapping points (in just the no-drug dimensions,
+  for the latter).
+  * Why would that be?
+  * Oh, because everything spread out.
+  * The number of things outside that boundary has actually increased.
+* Gamma is therefore probably a more useful metrci now than before.
+* Got better results with 90th %-ile for guide scores
+
+20180314 GM Notes
+=================
+
+

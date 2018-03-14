@@ -1,0 +1,25 @@
+==============
+Residual TODOs
+==============
+
+* Implement the average, cutoff, backoff approach and compare DCA-glob
+  * Maybe recreate a'c'b *using* DCA, somehow
+  * **Evaluate the corner cases.**
+* Define the goals for what a library would be (both libraries)
+  * Which genes
+  * Guide properties
+* Assemble first pass library designs and discuss
+* "Normalize for per-gene effects" (I'm forgetting what that means...)
+* Make a beak "prediction" that can be tested downstream.
+* Take a swing at efficacy prediction, using DCA, sklearn, ...?
+* Can I test the "controls are actually noisier than sicks" idea?
+* Explore where genes are in the aggregate graph.
+
+=============
+20180314 Plan
+=============
+
+* Talk to Jason about library design
+* Try to remember what "Normalize for per-gene effects" means, in case it
+  matters
+* Implement Martin's idea and/or re-create using DCA

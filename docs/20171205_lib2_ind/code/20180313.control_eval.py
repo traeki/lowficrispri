@@ -178,29 +178,31 @@ subspace_filtered = pd.DataFrame(subspace_filtered,
 U_glob, s_glob, Vt_glob = np.linalg.svd(glob_piece, full_matrices=False)
 U_dose, s_dose, Vt_dose = np.linalg.svd(dose_orthog, full_matrices=False)
 
-U_scores = U_dose
+U_scores = U_glob
+
+gene_map = diffdata[['variant', 'gene_name']].drop_duplicates()
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
-# scaler = preprocessing.MaxAbsScaler()
-scaler = preprocessing.MinMaxScaler()
-colors = scaler.fit_transform(guide_scores)
-# # Fold [-1, 1] -> [0, 1]
-# colors = colors.abs()
-# # Move [-1, 1] -> [0, 1]
-# colors = (colors + 1)/2
-colors = pd.DataFrame(colors,
-                      index=guide_scores.index,
-                      columns=guide_scores.columns)
+scored = pd.merge(guide_scores.reset_index(),
+                  gene_map,
+                  on='variant', how='left')
+scored = scored.drop_duplicates()
+glob_piece = pd.DataFrame(glob_piece,
+                          index=cleaned.index,
+                          columns=cleaned.columns)
 
-plt.figure(figsize=(6,6))
-plt.scatter(U_glob[:,0], U_dose[:,0],
-            s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno_r(colors.PC2))
+best_gamma = glob_piece.mean(axis=1).reset_index()
+refined = pd.merge(best_gamma, gene_map, on='variant', how='left')
+refined = refined.drop_duplicates()
+refined = refined.set_index('variant')
+reficons = refined.groupby('gene_name').get_group('CONTROL')[0]
 
-plt.suptitle(
-    'Global-space vs. Dose-PC1 (colored by Dose-PC2)'.format(**vars()),
-    fontsize=16)
-plt.tight_layout()
-logging.info('Writing flat graph to {graphflat}'.format(**vars()))
-plt.savefig(graphflat)
-plt.close()
+original = cleaned.loc[:, relation(dose_none)].mean(axis=1).reset_index()
+original = pd.merge(original, gene_map, on='variant', how='left')
+original = original.drop_duplicates()
+original = original.set_index('variant')
+origcons = original.groupby('gene_name').get_group('CONTROL')[0]
+
+import IPython
+IPython.embed()

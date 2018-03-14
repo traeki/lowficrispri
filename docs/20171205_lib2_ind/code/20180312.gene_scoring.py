@@ -185,12 +185,10 @@ guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
 scored = pd.merge(guide_scores.reset_index(),
                   diffdata[['variant', 'gene_name']],
                   on='variant', how='left')
-genes_pc1 = scored.groupby('gene_name').PC1.mean().sort_values()
+scored = scored.drop_duplicates()
+genes_pc1 = scored.groupby('gene_name').PC1.quantile(0.1).sort_values()
 pc1_head = genes_pc1[:20]
 pc1_tail = genes_pc1[-20:]
-genes_pc2 = scored.groupby('gene_name').PC2.mean().sort_values()
-pc2_head = genes_pc2[:20]
-pc2_tail = genes_pc2[-20:]
 
 import IPython
 IPython.embed()

@@ -96,11 +96,12 @@ def dose_high(k):
     return True
   return False
 
-dose_rels = list()
-dose_rels.append(relation(dose_none))
-dose_rels.append(relation(dose_low))
-dose_rels.append(relation(dose_high))
-dose_rels = np.asarray(dose_rels).T
+dose_none_rel = np.asarray([relation(dose_none)]).T
+dose_low_rel = np.asarray([relation(dose_low)]).T
+dose_high_rel = np.asarray([relation(dose_high)]).T
+dose_rels = np.concatenate([dose_none_rel,
+                            dose_low_rel,
+                            dose_high_rel], axis=1)
 
 span_rels = list()
 N_TIMEPOINTS = 4
@@ -166,19 +167,23 @@ def im_ker_partition(D):
 
 
 image_glob, kernel_glob = im_ker_partition(global_rel)
-image_dose, kernel_dose = im_ker_partition(dose_rels)
+image_none, kernel_none = im_ker_partition(dose_none_rel)
+image_low,  kernel_low =  im_ker_partition(dose_low_rel)
+image_high, kernel_high = im_ker_partition(dose_high_rel)
 image_both, kernel_both = im_ker_partition(glob_dose_rels)
 
 subspace_filtered = image_both(cleaned)
-glob_piece = image_glob(cleaned)
-dose_orthog = image_dose(kernel_glob(cleaned))
 subspace_filtered = pd.DataFrame(subspace_filtered,
                                  index=cleaned.index,
                                  columns=cleaned.columns)
+glob_piece = image_glob(subspace_filtered)
 U_glob, s_glob, Vt_glob = np.linalg.svd(glob_piece, full_matrices=False)
-U_dose, s_dose, Vt_dose = np.linalg.svd(dose_orthog, full_matrices=False)
+none_orthog = image_none(kernel_glob(subspace_filtered))
+U_none, s_none, Vt_none = np.linalg.svd(none_orthog, full_matrices=False)
+high_orthog = image_high(kernel_none(kernel_glob(subspace_filtered)))
+U_high, s_high, Vt_high = np.linalg.svd(high_orthog, full_matrices=False)
 
-U_scores = U_dose
+U_scores = U_high
 
 PC_names = ['PC{0}'.format(i+1) for i in range(U_scores.shape[1])]
 guide_scores = pd.DataFrame(U_scores, columns=PC_names, index=cleaned.index)
@@ -194,13 +199,13 @@ colors = pd.DataFrame(colors,
                       columns=guide_scores.columns)
 
 plt.figure(figsize=(6,6))
-plt.scatter(U_glob[:,0], U_dose[:,0],
-            s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno_r(colors.PC2))
+plt.scatter(U_glob[:,0], U_none[:,0],
+            s=2, linewidth=0.5, alpha=0.5, c=cc.m_inferno(colors.PC1))
 
 plt.suptitle(
-    'Global-space vs. Dose-PC1 (colored by Dose-PC2)'.format(**vars()),
+    'Global-space vs. Drugged-space (Color by dose-space)'.format(**vars()),
     fontsize=16)
-plt.tight_layout()
+# plt.tight_layout()
 logging.info('Writing flat graph to {graphflat}'.format(**vars()))
 plt.savefig(graphflat)
 plt.close()
