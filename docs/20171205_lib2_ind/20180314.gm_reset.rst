@@ -232,3 +232,22 @@ QUESTIONS
 * Are some genes better-residualed?  Why?  What can I say about that?
 
 * TUNE G FIT W.R.T. CONTROLS
+
+============
+After Henele
+============
+
+Later:
+* Explore where genes are in the aggregate graph. (i.e. gene-painting)
+* Make a beak "prediction" that can be tested downstream.
+
+Soon:
+* Finish building fully normalized [gamma * alpha = X] representation of data
+* Compute SVD and take a look at that simple answer (plot vs. previous 'best')
+* Use TensorFlow to
+  * build a graph that computes all the multiples
+  * feed training examples in to pairs of variables
+  * avoid SVD pitfall -- regularize to plausible "gt"
+  * figure out how to add "trust weight" to samples
+  * PLACEHOLDER: train those weights via cross-validation ...
+  * PLACEHOLDER: train (?) a trust weight for raw count

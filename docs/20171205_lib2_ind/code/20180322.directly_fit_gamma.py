@@ -25,19 +25,23 @@ logging.basicConfig(level=logging.INFO,
 
 np.set_printoptions(precision=4, suppress=True)
 
-datafile = os.path.join(gcf.OUTPUT_DIR, 'lib234.rawlogs.tsv')
-data = pd.read_csv(datafile, sep='\t', header=0, index_col=0)
+rawfile = os.path.join(gcf.OUTPUT_DIR, 'lib234.raw.tsv')
+rawdata = pd.read_csv(rawfile, sep='\t', header=0, index_col=0)
 
 def dose_mapper(name):
   if name[0] == 'a' or name[2:] == 'd1':
-    return 'none'
+    return 'sober'
   if name[2:] == 'd2':
     return 'low'
   if name[2:] == 'd3':
     return 'high'
   logging.error('encountered unhandled sample {name}'.format(**vars()))
   sys.exit(2)
-data['dose'] = data.sample.apply(dose_mapper)
+rawdata['dose'] = rawdata['sample'].apply(dose_mapper)
+
+def back_half(samplename):
+  return (int(samplename[1]) > 1)
+rawdata['late'] = rawdata['sample'].apply(back_half)
 
 PREFIX = os.path.splitext(os.path.basename(__file__))[0]
 def partnerfile(ext):
@@ -55,18 +59,36 @@ sample_od_groups = filtered.groupby(['day', 'tube'])
 g_map = [[day, tube, g_fit(value)] for (day, tube), value in sample_od_groups]
 g_map = pd.DataFrame(g_map, columns=['day', 'tube', 'g_fit'])
 
-# TODO(jsh): Gather sample-threads by dose
-variant_grouper = data.groupby(['variant'])
+logging.info('Constructing fitness exponent grid...'.format(**vars()))
+def normalize(counts):
+  return counts * (float(gcf.NORMAL_SIZE) / counts.sum())
+rawdata['norm'] = rawdata.groupby('sample').raw.transform(normalize)
+rawdata['log'] = np.log2(rawdata.norm.clip(1))
+rawdata.set_index(['variant', 'sample'], inplace=True)
+wide = rawdata.log.unstack()
+sync = wide.copy()
+for column in wide.columns:
+  startsample = column[:1] + '0' + column[2:]
+  sync[column] -= wide[startsample]
+rawdata['synced'] = sync.stack()
+synccons = sync.loc[rawdata.control.unstack().iloc[:, 0]]
+recentered = sync.subtract(synccons.median(), axis='columns')
+X = recentered.stack().loc[(rawdata.dose == 'sober') & rawdata.late].unstack()
 
+logging.info('Solving USV* = SVD(X)...'.format(**vars()))
+U, s, Vt = np.linalg.svd(X, full_matrices=False)
+V = Vt.T
+stackable = pd.DataFrame(U[:, 0],
+                         index=rawdata.unstack().index,
+                         columns=['a3d1'])
+stackable.columns = stackable.columns.set_names(['sample'])
+control_gammas = stackable.stack().loc[rawdata.control].unstack()
+nullbound = -(2 * control_gammas.std()) + control_gammas.median()
+outer = stackable.loc[(stackable < nullbound).a3d1]
 
-# TODO(jsh): Figure out how to fit a single thread
-#            * Specify the parameterized equation model
-#            * What is the term for relative vs. absolute drift
-#              * Maybe this is a backfill from control fits?
-#            * Do we fit once for all points, or fit N times plus
-#              per-trace noise term?
-# TODO(jsh): How do we compute residuals?
-# TODO(jsh): Given control residuals, can we:
-#            * Ascribe probability to other fit-explanations?
-#            * Describe the null hypothesis?
-# TODO(jsh): Figure out modifications for rho fitting
+# TODO(jsh): Feels like early span is effectively penalized three times, etc.
+# TODO(jsh): change to incremental shift-difference
+# TODO(jsh): Fix the time sub-selection
+
+IPython.embed()
+

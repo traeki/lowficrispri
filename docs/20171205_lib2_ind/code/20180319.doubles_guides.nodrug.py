@@ -13,6 +13,8 @@ import seaborn as sns
 import scipy.stats as st
 import sys
 
+import IPython
+
 from sklearn import decomposition
 from sklearn import preprocessing
 
@@ -196,6 +198,8 @@ reficons = refined.groupby('gene_name').get_group('CONTROL').gamma
 nullbound = -2 * reficons.std() + reficons.median()
 logging.info('NULLBOUND: {nullbound}'.format(**vars()))
 
+IPython.embed()
+
 def pick_two(group):
   focus = group.loc[(group.gamma < nullbound) & (group.gamma > 4*nullbound)]
   focus = focus.sort_values('gamma', ascending=False)
@@ -229,3 +233,8 @@ picks = picks.gamma
 pickfile = os.path.join(gcf.OUTPUT_DIR, '.'.join([PREFIX, 'tsv']))
 logging.info('Writing picks to {pickfile}'.format(**vars()))
 picks.to_csv(pickfile, sep='\t')
+dump = refined.groupby('gene_name')
+dump = pd.concat([dump.get_group(x) for x in ['mreB', 'murE', 'tuaB']])
+dumpfile = os.path.join(gcf.OUTPUT_DIR, '.'.join([PREFIX, 'dump', 'tsv']))
+logging.info('Writing specific genes in full to {dumpfile}'.format(**vars()))
+dump.to_csv(dumpfile, sep='\t')
