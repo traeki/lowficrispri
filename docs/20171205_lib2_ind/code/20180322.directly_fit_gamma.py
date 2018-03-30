@@ -39,10 +39,6 @@ def dose_mapper(name):
   sys.exit(2)
 rawdata['dose'] = rawdata['sample'].apply(dose_mapper)
 
-def back_half(samplename):
-  return (int(samplename[1]) > 1)
-rawdata['late'] = rawdata['sample'].apply(back_half)
-
 PREFIX = os.path.splitext(os.path.basename(__file__))[0]
 def partnerfile(ext):
   return os.path.join(gcf.OUTPUT_DIR, '.'.join([PREFIX, ext]))
@@ -65,15 +61,18 @@ def normalize(counts):
 rawdata['norm'] = rawdata.groupby('sample').raw.transform(normalize)
 rawdata['log'] = np.log2(rawdata.norm.clip(1))
 rawdata.set_index(['variant', 'sample'], inplace=True)
-wide = rawdata.log.unstack()
-sync = wide.copy()
-for column in wide.columns:
-  startsample = column[:1] + '0' + column[2:]
-  sync[column] -= wide[startsample]
-rawdata['synced'] = sync.stack()
-synccons = sync.loc[rawdata.control.unstack().iloc[:, 0]]
-recentered = sync.subtract(synccons.median(), axis='columns')
-X = recentered.stack().loc[(rawdata.dose == 'sober') & rawdata.late].unstack()
+def diff_samples(group):
+  wide = group.log.unstack().copy()
+  wide.sort_index(axis=1, inplace=True)
+  wide -= wide.shift(axis=1)
+  wide.iloc[:, 0] = 0.0
+  return wide.stack()
+grouper = rawdata.groupby(['day', 'tube'], group_keys=False)
+rawdata['dgaskew'] = grouper.apply(diff_samples)
+diffcenters = rawdata.loc[rawdata.control].dgaskew.unstack().median()
+dg = rawdata.dgaskew.unstack().subtract(diffcenters, axis='columns')
+rawdata['deltagamma'] = dg.stack()
+X = rawdata.loc[rawdata.dose == 'sober'].deltagamma.unstack()
 
 logging.info('Solving USV* = SVD(X)...'.format(**vars()))
 U, s, Vt = np.linalg.svd(X, full_matrices=False)
@@ -83,12 +82,8 @@ stackable = pd.DataFrame(U[:, 0],
                          columns=['a3d1'])
 stackable.columns = stackable.columns.set_names(['sample'])
 control_gammas = stackable.stack().loc[rawdata.control].unstack()
-nullbound = -(2 * control_gammas.std()) + control_gammas.median()
-outer = stackable.loc[(stackable < nullbound).a3d1]
-
-# TODO(jsh): Feels like early span is effectively penalized three times, etc.
-# TODO(jsh): change to incremental shift-difference
-# TODO(jsh): Fix the time sub-selection
+# TODO(jsh): Figure out a way to fix dir/sign of nullbound
+nullbound = 2 * control_gammas.std() + control_gammas.median()
+outer = stackable.loc[(stackable > nullbound).a3d1]
 
 IPython.embed()
-

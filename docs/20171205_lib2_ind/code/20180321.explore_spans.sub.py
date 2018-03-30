@@ -50,9 +50,9 @@ cleaned = impute_over_nans(widediffdata)
 
 taggers = dict()
 taggers['glob'] = lambda s, e: True
-taggers['early'] = lambda s, e: (s[1] == '0' and e[1] == '1')
-taggers['mid'] = lambda s, e: (s[1] == '1' and e[1] == '2')
-taggers['late'] = lambda s, e: (s[1] == '2' and e[1] == '3')
+taggers['early'] = lambda s, e: (s[1] == '1' and e[1] == '1')
+taggers['mid'] = lambda s, e: (s[1] == '2' and e[1] == '2')
+taggers['late'] = lambda s, e: (s[1] == '3' and e[1] == '3')
 taggers['none'] = lambda s, e: (s[0] == 'a' or s[2:] == 'd1')
 taggers['low'] = lambda s, e: (s[0] != 'a' and s[2:] == 'd2')
 taggers['high'] = lambda s, e: (s[0] != 'a' and s[2:] == 'd3')

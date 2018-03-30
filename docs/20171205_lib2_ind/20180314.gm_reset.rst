@@ -251,3 +251,27 @@ Soon:
   * figure out how to add "trust weight" to samples
   * PLACEHOLDER: train those weights via cross-validation ...
   * PLACEHOLDER: train (?) a trust weight for raw count
+
+=============
+20180327 Jeff
+=============
+
+Jeff wants a copy of the X grid divided by g∆t (i.e. skew measures).
+
+I should ideally do batch-effect removal first, then hand that over.
+
+Also, batch effect removal might improve my outcomes.  Worth trying.
+
+====================
+20180328 Carol/Jason
+====================
+
+1. Still build Jeff's table, and ideally do some plotting by sous
+
+2. Derive all edit-distance-one subtrees, filter by parent-gamma consistency
+
+* How many are there?
+* Broken down by gene, how many edges are there?
+* Where are we losing the guides that aren't there?
+  * ...no parent
+  * ...low-confidence parent
