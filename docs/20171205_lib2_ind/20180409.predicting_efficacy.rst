@@ -1,0 +1,99 @@
+===================
+20180409 Next Steps
+===================
+
+Still discussing timepoints, but based on the Mann-Whitney U outcomes, it's
+quite clear that the best option is either all 10 doublings or last 5
+doublings.
+
+Regardless of the decision there, I think it's time to move on to building a
+prediction engine.  What should that look like?
+
+Goal A: Learn *absolute efficacy rules*
+Goal B: Learn *relative efficacy rules*
+
+Features A
+----------
+* Absolute Location (normalized how?)
+* Relative Location
+* Strand
+* GC content
+* Homopolymers
+* [HEAVY] base-location pairs
+  * Distal base
+  * Proximal base
+* ∆G
+
+Features B
+----------
+* Parent mismatch
+* Location of mismatch
+* Transition pair
+* Surrounding pair
+* ∆∆G
+
+So the idea will be to build two separate regressors.  Each will have as
+inputs all of the various features.  Output will be change in gamma (for,
+say, 5-10 doublings).
+
+Next steps:
+
+1. Build a TensorFlow linear regressor that takes inputs and outputs of this
+   shape.
+
+2. Generate feature vectors.
+
+3. Figure out test/crossvalidation stuff.
+
+4. Evaluate options for higher order (non-linear) learning.
+
+
+====================
+20180409 After Jason
+====================
+
+Realized that we should (really should have from the outset) based the
+decision of which data to use on which data provides the best outcomes.  In
+some sense, duh.
+
+So, empiricists we become, and onward we march with the TensorFlow plan.
+
+
+============================
+20180416 Learning TensorFlow
+============================
+
+A. Create Features
+B. Create Labels
+C. Create/Clear (Empty) Graph
+
+1. Create Variables
+2. Create Placeholders
+3. Model
+4. Loss Function
+5. Optimizer
+  * Trainer (optimizer.minimize?)
+6. Initializer
+7. Setup Session
+  * Run Initializer
+  * Setup Batches
+  * Feed dictionary
+    * Random batches (careful here)
+    * Populates placeholders
+  * Run optimizer with feed dictionary
+8. Get variable values back by "running" them
+
+First Steps
+-----------
+
+1. Create a feature vector for location of mismatch.
+
+2. Test/Train split data
+
+3. Create input_func
+
+4. Create Estimator
+
+5. Train the model
+
+6. Evaluate/Predict

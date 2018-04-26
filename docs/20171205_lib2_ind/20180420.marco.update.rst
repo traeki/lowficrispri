@@ -1,0 +1,54 @@
+=========================
+Return to the Marco Stone
+=========================
+
+* Change test_train split
+  * We need to improve this by either
+    * using a statistic (mean/median/etc)
+    * grouping before test-train split
+* relative gammas revisit
+  * Marco uses the *ratio* of the gammas.  Is this better?  Worse?  Neutral?
+  * Should we avoid training on mismatches with low starting gamma?
+* Features
+  * position
+  * transition
+  * cross?
+  * other features
+    * GC content (BEWARE RNA/DNA BINDING AFFINITY)
+    * Change in GC content
+    * Other change in affinity prediction
+  * Adjacent bases
+  * basically any "parent guide" feature
+
+* Max 2016 eLife
+* Try systematic exclusion of features
+* Evaluate variance explained
+* Goal: Be able to design 10 guides with confidence that some 5 form a ladder
+* Predicted vs. Actual (or Predicted-Actual)
+* Build a neural net to *design* mismatch guides???
+* Validate with Flow
+
+Near-term Agenda
+++++++++++++++++
+
+First Tier
+----------
+
+* Fix the test data splitting.
+* Add evaluation/prediction of some sort.
+* Add option to filter guides with low gammas, and compare.
+* Add option to change "delta" to geometric, and compare.
+
+Second Tier
+-----------
+
+* Add cross of mismatch location (?)
+* Add GC content
+* Add proximal bases
+
+Third Tier
+----------
+
+* Experiment with Neural Nets, Elastic Net, SVM, ...
+* Build stub version of absolute predictor
+* Figure out inverted prediction (i.e. directly design guide for efficacy)

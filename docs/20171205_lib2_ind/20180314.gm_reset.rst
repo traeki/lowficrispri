@@ -275,3 +275,45 @@ Also, batch effect removal might improve my outcomes.  Worth trying.
 * Where are we losing the guides that aren't there?
   * ...no parent
   * ...low-confidence parent
+
+=====================
+20180402 Following up
+=====================
+
+TODO item in the code right now is:
+
+* Filter families by parent gamma stability (?)
+
+That actually doesn't look super compelling as an approach, so what actually
+makes sense, here?  I want to do do things
+
+1. Figure out which things agree.
+2. Do something sensible
+   * ideally somehow both **continuous** and **maximal**, even though...
+
+Okay, so what if I compute scipy.stats.ttest_rel for every set of
+measurement pairs?  That gives me back a shift in mean and a probability of
+consistency.  I can then use the average of each set, but weight by the
+p-value of the null distribution.
+
+...we should talk to a statistician soon.  This is probably kind of ...
+abusive.  But!  It's something to start.
+
+Notably, this will not work for items in isolation.  Those should have a
+value of zero for this feature.
+
+====================
+20180402 Jason Convo
+====================
+
+Having seen the poor outcome of the ttest_rel plan (basically drops anything
+not RIGHT on the diagonal), I talked to Jason.
+
+New plan:
+
+1. Try a non-parametric test to determine significance of non-zeroness for
+   each guide.
+
+2. Compare that test across all timepoint pairs.
+
+3. Pick best timepoint pair, and just use that.
