@@ -50,5 +50,6 @@ Third Tier
 ----------
 
 * Experiment with Neural Nets, Elastic Net, SVM, ...
+* Experiment with hyperparameters like optimizer
 * Build stub version of absolute predictor
 * Figure out inverted prediction (i.e. directly design guide for efficacy)

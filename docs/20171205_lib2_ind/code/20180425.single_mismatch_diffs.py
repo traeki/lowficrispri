@@ -236,40 +236,52 @@ fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
     'mismatch_trans', sorted(oneoff_features.mismatch_trans.unique()))
 feat_cols = [fcol_idx, fcol_trans]
 
-logging.info('Creating input functions'.format(**vars()))
-chosen_span = '03'
-X_all = oneoff_scored[featnames].reset_index(drop=True)
-y_all = oneoff_scored[chosen_span].reset_index(drop=True)
-gss = GroupShuffleSplit(test_size=0.3, random_state=42)
-splititer = gss.split(X_all, y_all, oneoff_scored.reset_index().variant)
-train_rows, test_rows = splititer.next()
-train_rows = shuffle(train_rows)
-test_rows = shuffle(test_rows)
-X_train = X_all.loc[train_rows, :]
-y_train = y_all.loc[train_rows]
-X_test = X_all.loc[test_rows, :]
-y_test = y_all.loc[test_rows]
-train_input_func = tf.estimator.inputs.pandas_input_fn(
-    x=X_train, y=y_train,
-    batch_size=10, num_epochs=None,
-    shuffle=True)
-train_eval_input_func = tf.estimator.inputs.pandas_input_fn(
-    x=X_train, y=y_train,
-    batch_size=10, num_epochs=1000,
-    shuffle=False)
-test_eval_input_func = tf.estimator.inputs.pandas_input_fn(
-    x=X_test, y=y_test,
-    batch_size=10, num_epochs=1000,
-    shuffle=False)
+for chosen_span in spans:
+  X_all = oneoff_scored[featnames].reset_index(drop=True)
+  y_all = oneoff_scored[chosen_span].reset_index(drop=True)
+  gss = GroupShuffleSplit(test_size=0.3, random_state=42)
+  splititer = gss.split(X_all, y_all, oneoff_scored.reset_index().variant)
+  train_rows, test_rows = splititer.next()
+  train_rows = shuffle(train_rows)
+  test_rows = shuffle(test_rows)
+  X_train = X_all.loc[train_rows, :]
+  y_train = y_all.loc[train_rows]
+  X_test = X_all.loc[test_rows, :]
+  y_test = y_all.loc[test_rows]
+  logging.info('Creating input functions'.format(**vars()))
+  train_input_func = tf.estimator.inputs.pandas_input_fn(
+      x=X_train, y=y_train,
+      batch_size=10, num_epochs=None,
+      shuffle=True)
+  train_eval_input_func = tf.estimator.inputs.pandas_input_fn(
+      x=X_train, y=y_train,
+      batch_size=10, num_epochs=1,
+      shuffle=False)
+  test_eval_input_func = tf.estimator.inputs.pandas_input_fn(
+      x=X_test, y=y_test,
+      batch_size=10, num_epochs=1,
+      shuffle=False)
 
-logging.info('Creating the model.'.format(**vars()))
-model = tf.estimator.LinearRegressor(feature_columns=feat_cols)
+  logging.info('Creating the model.'.format(**vars()))
+  model = tf.estimator.LinearRegressor(feature_columns=feat_cols)
 
-logging.info('Training the model.'.format(**vars()))
-model.train(input_fn=train_input_func, steps=20000)
-train_evaluation = model.evaluate(input_fn=train_eval_input_func, steps=2000)
-test_evaluation = model.evaluate(input_fn=test_eval_input_func, steps=2000)
-logging.info('TRAIN EVAL:\n{train_evaluation}'.format(**vars()))
-logging.info('TEST EVAL:\n{test_evaluation}'.format(**vars()))
+  logging.info('Training the model.'.format(**vars()))
+  model.train(input_fn=train_input_func, steps=20000)
+  train_evaluation = model.evaluate(input_fn=train_eval_input_func)
+  test_evaluation = model.evaluate(input_fn=test_eval_input_func)
+  logging.info('TRAIN EVAL:\n{train_evaluation}'.format(**vars()))
+  logging.info('TEST EVAL:\n{test_evaluation}'.format(**vars()))
+
+  test_pred_input_func = tf.estimator.inputs.pandas_input_fn(
+      x=X_test, shuffle=False)
+  preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
+
+  plt.figure(figsize=(6,6))
+  plt.xlim(-.5, 1)
+  plt.ylim(-.5, 1)
+  sns.regplot(np.array(y_test, dtype='float64'),
+              np.array(preds, dtype='float64'))
+  plt.savefig(partnerfile(chosen_span + '.png'))
+  plt.clf()
 
 IPython.embed()
