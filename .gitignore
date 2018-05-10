@@ -8,4 +8,4 @@ docs/_build/
 *.svg
 *.wav
 *234*data*.tsv
-*234*rawlogs*.tsv
+*234*raw*.tsv
