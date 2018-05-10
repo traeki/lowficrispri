@@ -36,8 +36,10 @@ First Tier
 
 * Fix the test data splitting.
 * Add evaluation/prediction of some sort.
-* Add option to filter guides with low gammas, and compare.
-* Add option to change "delta" to geometric, and compare.
+* "delta" -- subtractive vs. geometric...
+
+* filter guides with low gammas...
+* sampling across genes or families...
 
 Second Tier
 -----------
@@ -53,3 +55,8 @@ Third Tier
 * Experiment with hyperparameters like optimizer
 * Build stub version of absolute predictor
 * Figure out inverted prediction (i.e. directly design guide for efficacy)
+
+Jason/Carol meeting 20180430
+============================
+
+

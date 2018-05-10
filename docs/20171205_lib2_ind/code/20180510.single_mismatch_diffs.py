@@ -210,7 +210,7 @@ featnames = ['mismatch_idx', 'mismatch_trans']
 oneoff_features = pd.concat([oneoffs] + featset, axis=1)
 oneoff_features.set_index(['variant', 'original'], inplace=True)
 
-logging.info('Computing delta-gammas.'.format(**vars()))
+logging.info('Computing geodelt-gammas.'.format(**vars()))
 # TODO(jsh): use division instead of subtraction, or at least think carefully
 #            about it
 spans = ['01', '12', '23', '02', '13', '03']
@@ -224,10 +224,13 @@ child_gammas = pd.merge(oneoffs, flatspans,
                         how='left')
 child_gammas = child_gammas[['variant', 'original'] + spans]
 child_gammas.set_index(['variant', 'original'], inplace=True)
-delta_gammas = child_gammas - parent_gammas
+geodelt_gammas = child_gammas / parent_gammas
+filtered_geodelt_gammas = geodelt_gammas.where(
+    parent_gammas.abs() > (contspans.std()*2)
+)
 
 logging.info('Formalizing feature columns.'.format(**vars()))
-oneoff_scored = pd.merge(delta_gammas, oneoff_features,
+oneoff_scored = pd.merge(filtered_geodelt_gammas, oneoff_features,
                          left_index=True, right_index=True)
 fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
     'mismatch_idx', sorted(oneoff_features.mismatch_idx.unique()))
@@ -239,13 +242,13 @@ train_evals = dict()
 test_evals = dict()
 for chosen_span in spans:
   logging.info('MODEL FOR SPAN: {chosen_span}'.format(**vars()))
-  X_all = oneoff_scored[featnames].reset_index(drop=True)
-  y_all = oneoff_scored[chosen_span].reset_index(drop=True)
+  usable_data = oneoff_scored.loc[~oneoff_scored[chosen_span].isnull()]
+  X_all =usable_data[featnames].reset_index(drop=True)
+  y_all =usable_data[chosen_span].reset_index(drop=True)
   gss = GroupShuffleSplit(test_size=0.3, random_state=42)
-  splititer = gss.split(X_all, y_all, oneoff_scored.reset_index().variant)
+  splititer = gss.split(X_all, y_all, usable_data.reset_index().variant)
   train_rows, test_rows = splititer.next()
-  train_rows = shuffle(train_rows)
-  test_rows = shuffle(test_rows)
+  train_rows = shuffle(train_rows) test_rows = shuffle(test_rows)
   X_train = X_all.loc[train_rows, :]
   y_train = y_all.loc[train_rows]
   X_test = X_all.loc[test_rows, :]
@@ -268,7 +271,7 @@ for chosen_span in spans:
   model = tf.estimator.LinearRegressor(feature_columns=feat_cols)
 
   logging.info('Training the model.'.format(**vars()))
-  model.train(input_fn=train_input_func, steps=20000)
+  model.train(input_fn=train_input_func, steps=2000)
   train_evals[chosen_span] = model.evaluate(input_fn=train_eval_input_func)
   test_evals[chosen_span] = model.evaluate(input_fn=test_eval_input_func)
 
@@ -277,8 +280,8 @@ for chosen_span in spans:
   preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
 
   plt.figure(figsize=(6,6))
-  plt.xlim(-.5, 1)
-  plt.ylim(-.5, 1)
+  plt.xlim(-.1, 2)
+  plt.ylim(-.1, 2)
   sns.regplot(np.array(y_test, dtype='float64'),
               np.array(preds, dtype='float64'),
               scatter_kws={
