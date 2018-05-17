@@ -1,0 +1,33 @@
+Near-term Agenda
+++++++++++++++++
+
+First Tier
+----------
+
+* Fix the test data splitting.
+* Add evaluation/prediction of some sort.
+* "delta" -- subtractive vs. geometric...
+* filter guides with low gammas...
+
+* sampling across genes or families...
+
+Second Tier
+-----------
+
+* Add cross of mismatch location (?)
+* Add GC content
+* Add proximal bases
+
+Third Tier
+----------
+
+* Experiment with Neural Nets, Elastic Net, SVM, ...
+* Experiment with hyperparameters like optimizer
+* Build stub version of absolute predictor
+* Figure out inverted prediction (i.e. directly design guide for efficacy)
+
+Jason/Carol/Marco meeting 20180511
+==================================
+
+* Train on lib2, check out lib3/4 outcomes
+* Experiment with larger thresholds for dropping parents
