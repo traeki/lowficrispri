@@ -279,19 +279,31 @@ child_gammas = child_gammas[['variant', 'original'] + spans]
 child_gammas.set_index(['variant', 'original'], inplace=True)
 geodelt_gammas = child_gammas / parent_gammas
 filtered_geodelt_gammas = geodelt_gammas.where(
-    parent_gammas.abs() > (contspans.std()*6)
+    parent_gammas.abs() > (contspans.std()*10)
 )
 
 logging.info('Formalizing feature columns.'.format(**vars()))
 oneoff_scored = pd.merge(filtered_geodelt_gammas, oneoff_features,
                          left_index=True, right_index=True)
+feat_cols = list()
 fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
     'mm_idx', sorted(oneoff_features.mm_idx.unique()))
+feat_cols.append(fcol_idx)
 fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
     'mm_trans', sorted(oneoff_features.mm_trans.unique()))
+feat_cols.append(fcol_trans)
+fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
+    'mm_brackets', sorted(oneoff_features.mm_brackets.unique()))
+feat_cols.append(fcol_brackets)
+fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
+    'mm_leading', sorted(oneoff_features.mm_leading.unique()))
+feat_cols.append(fcol_leading)
+fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
+    'mm_trailing', sorted(oneoff_features.mm_trailing.unique()))
+feat_cols.append(fcol_trailing)
 fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
     'mm_both', sorted(oneoff_features.mm_both.unique()))
-feat_cols = [fcol_idx, fcol_trans, fcol_both]
+feat_cols.append(fcol_both)
 
 train_evals = dict()
 test_evals = dict()
@@ -344,6 +356,9 @@ for chosen_span in spans:
                 's': 2,
                 'alpha': 0.2,
               })
+  plt.xlabel('Measured')
+  plt.ylabel('Predicted')
+  plt.title('Ratios of Phenotype (Child / Parent)')
   plt.savefig(partnerfile(chosen_span + '.png'))
   plt.clf()
 
@@ -352,5 +367,3 @@ for span in test_evals:
   test_evaluation = test_evals[span]
   logging.info('TRAIN EVAL [{span}]:\n{train_evaluation}'.format(**vars()))
   logging.info('TEST EVAL [{span}]:\n{test_evaluation}'.format(**vars()))
-
-IPython.embed()

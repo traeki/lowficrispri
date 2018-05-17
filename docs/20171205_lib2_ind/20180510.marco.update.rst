@@ -31,3 +31,4 @@ Jason/Carol/Marco meeting 20180511
 
 * Train on lib2, check out lib3/4 outcomes
 * Experiment with larger thresholds for dropping parents
+* Continue with Tier 2 work

@@ -211,9 +211,8 @@ oneoff_features = pd.concat([oneoffs] + featset, axis=1)
 oneoff_features.set_index(['variant', 'original'], inplace=True)
 
 logging.info('Computing geodelt-gammas.'.format(**vars()))
-# TODO(jsh): use division instead of subtraction, or at least think carefully
-#            about it
-spans = ['01', '12', '23', '02', '13', '03']
+# spans = ['01', '12', '23', '02', '13', '03']
+spans = ['13', '03']
 parent_gammas = pd.merge(oneoffs, flatspans,
                          left_on='original', right_on='variant',
                          how='left', suffixes=('', '_orig'))
@@ -226,7 +225,7 @@ child_gammas = child_gammas[['variant', 'original'] + spans]
 child_gammas.set_index(['variant', 'original'], inplace=True)
 geodelt_gammas = child_gammas / parent_gammas
 filtered_geodelt_gammas = geodelt_gammas.where(
-    parent_gammas.abs() > (contspans.std()*2)
+    parent_gammas.abs() > (contspans.std()*10)
 )
 
 logging.info('Formalizing feature columns.'.format(**vars()))
@@ -248,7 +247,8 @@ for chosen_span in spans:
   gss = GroupShuffleSplit(test_size=0.3, random_state=42)
   splititer = gss.split(X_all, y_all, usable_data.reset_index().variant)
   train_rows, test_rows = splititer.next()
-  train_rows = shuffle(train_rows) test_rows = shuffle(test_rows)
+  train_rows = shuffle(train_rows)
+  test_rows = shuffle(test_rows)
   X_train = X_all.loc[train_rows, :]
   y_train = y_all.loc[train_rows]
   X_test = X_all.loc[test_rows, :]
@@ -271,7 +271,7 @@ for chosen_span in spans:
   model = tf.estimator.LinearRegressor(feature_columns=feat_cols)
 
   logging.info('Training the model.'.format(**vars()))
-  model.train(input_fn=train_input_func, steps=2000)
+  model.train(input_fn=train_input_func, steps=20000)
   train_evals[chosen_span] = model.evaluate(input_fn=train_eval_input_func)
   test_evals[chosen_span] = model.evaluate(input_fn=test_eval_input_func)
 
@@ -288,6 +288,9 @@ for chosen_span in spans:
                 's': 2,
                 'alpha': 0.2,
               })
+  plt.xlabel('Measured')
+  plt.ylabel('Predicted')
+  plt.title('Ratios of Phenotype (Child / Parent)')
   plt.savefig(partnerfile(chosen_span + '.png'))
   plt.clf()
 
@@ -296,4 +299,3 @@ for span in test_evals:
   test_evaluation = test_evals[span]
   logging.info('TRAIN EVAL [{span}]:\n{train_evaluation}'.format(**vars()))
   logging.info('TEST EVAL [{span}]:\n{test_evaluation}'.format(**vars()))
-IPython.embed()
