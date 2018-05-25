@@ -191,7 +191,7 @@ contspans = contspans.reset_index().drop('sid', axis=1)
 featset = list()
 featnames = list()
 
-logging.info('Creating mismatch features.'.format(**vars()))
+# logging.info('Creating mismatch features.'.format(**vars()))
 # def get_gc_content(row):
 #   # TODO(jsh): Implement GC (as absolute percent change, so +/- 5%)
 #   variant, original = row['variant'], row['original']
@@ -278,8 +278,11 @@ child_gammas = pd.merge(oneoffs, flatspans,
 child_gammas = child_gammas[['variant', 'original'] + spans]
 child_gammas.set_index(['variant', 'original'], inplace=True)
 geodelt_gammas = child_gammas / parent_gammas
+parent_replicate_groups = parent_gammas.groupby(['variant', 'original'])
+group_stat = lambda x: x.median()
+parent_gammas_stat = parent_replicate_groups.transform(group_stat)
 filtered_geodelt_gammas = geodelt_gammas.where(
-    parent_gammas.abs() > (contspans.std()*10)
+   parent_gammas_stat.abs() > (contspans.std()*10)
 )
 
 logging.info('Formalizing feature columns.'.format(**vars()))
