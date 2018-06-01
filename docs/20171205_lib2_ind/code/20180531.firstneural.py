@@ -305,29 +305,36 @@ def build_feature_frame(mismatch_pairs):
 
 def build_feature_columns(feature_frame):
   feat_cols = list()
-  # fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'firstbase', sorted(feature_frame.firstbase.unique()))
-  # feat_cols.append(fcol_firstbase)
-  # fcol_gc = tf.feature_column.numeric_column('gc_cont')
-  # feat_cols.append(fcol_gc)
+  fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
+      'firstbase', sorted(feature_frame.firstbase.unique()))
+  fcol_firstbase = tf.feature_column.indicator_column(fcol_firstbase)
+  feat_cols.append(fcol_firstbase)
+  fcol_gc = tf.feature_column.numeric_column('gc_cont')
+  feat_cols.append(fcol_gc)
   fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_idx', sorted(feature_frame.mm_idx.unique()))
+  fcol_idx = tf.feature_column.indicator_column(fcol_idx)
   feat_cols.append(fcol_idx)
-  # fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trans', sorted(feature_frame.mm_trans.unique()))
-  # feat_cols.append(fcol_trans)
-  # fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
-  # feat_cols.append(fcol_brackets)
-  # fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_leading', sorted(feature_frame.mm_leading.unique()))
-  # feat_cols.append(fcol_leading)
-  # fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
-  # feat_cols.append(fcol_trailing)
-  # fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_both', sorted(feature_frame.mm_both.unique()))
-  # feat_cols.append(fcol_both)
+  fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trans', sorted(feature_frame.mm_trans.unique()))
+  fcol_trans = tf.feature_column.indicator_column(fcol_trans)
+  feat_cols.append(fcol_trans)
+  fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
+  fcol_brackets = tf.feature_column.indicator_column(fcol_brackets)
+  feat_cols.append(fcol_brackets)
+  fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_leading', sorted(feature_frame.mm_leading.unique()))
+  fcol_leading = tf.feature_column.indicator_column(fcol_leading)
+  feat_cols.append(fcol_leading)
+  fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
+  fcol_trailing = tf.feature_column.indicator_column(fcol_trailing)
+  feat_cols.append(fcol_trailing)
+  fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_both', sorted(feature_frame.mm_both.unique()))
+  fcol_both = tf.feature_column.indicator_column(fcol_both)
+  feat_cols.append(fcol_both)
   return feat_cols
 
 def split_data(X_all, y_all, grouplabels):
@@ -343,8 +350,9 @@ def split_data(X_all, y_all, grouplabels):
   return X_train, y_train, X_test, y_test
 
 def train_model(X_train, y_train, grouplabels, model_dir):
-  model = tf.estimator.LinearRegressor(feature_columns=feat_cols,
-                                       model_dir=model_dir)
+  model = tf.estimator.DNNRegressor(feature_columns=feat_cols,
+                                    hidden_units=[5,20,5],
+                                    model_dir=model_dir)
   train_input_func = tf.estimator.inputs.pandas_input_fn(
       x=X_train, y=y_train,
       batch_size=10, num_epochs=None,
@@ -412,13 +420,14 @@ def train_eval_visualize(X_all, y_all, grouplabels, feat_cols):
   logging.info(test_eval_str)
   logging.info('Applying model...'.format(**vars()))
   preds = apply_model(model, X_test)
-  plotfile = partnerfile(y_all.name + '.png')
+  pred_plotfile = partnerfile(y_all.name + '.png')
   plot_predictions(X_test,
                    y_test,
                    preds,
                    train_eval_str,
                    test_eval_str,
-                   plotfile)
+                   pred_plotfile)
+
 
 if __name__ == '__main__':
   omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
@@ -428,7 +437,6 @@ if __name__ == '__main__':
   relative_gammas = relative_gammas_from_raw_data(rawfile, oneoffs, oddatafile)
   feature_frame = build_feature_frame(oneoffs)
   feat_cols = build_feature_columns(feature_frame)
-  logging.warn('WARNING: IGNORING EVERYTHING BUT MM_IDX')
   spans = ['03']
   for span in spans:
     logging.info('Working on **SPAN {span}**...'.format(**vars()))

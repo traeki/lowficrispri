@@ -305,29 +305,29 @@ def build_feature_frame(mismatch_pairs):
 
 def build_feature_columns(feature_frame):
   feat_cols = list()
-  # fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'firstbase', sorted(feature_frame.firstbase.unique()))
-  # feat_cols.append(fcol_firstbase)
-  # fcol_gc = tf.feature_column.numeric_column('gc_cont')
-  # feat_cols.append(fcol_gc)
+  fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
+      'firstbase', sorted(feature_frame.firstbase.unique()))
+  feat_cols.append(fcol_firstbase)
+  fcol_gc = tf.feature_column.numeric_column('gc_cont')
+  feat_cols.append(fcol_gc)
   fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_idx', sorted(feature_frame.mm_idx.unique()))
   feat_cols.append(fcol_idx)
-  # fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trans', sorted(feature_frame.mm_trans.unique()))
-  # feat_cols.append(fcol_trans)
-  # fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
-  # feat_cols.append(fcol_brackets)
-  # fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_leading', sorted(feature_frame.mm_leading.unique()))
-  # feat_cols.append(fcol_leading)
-  # fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
-  # feat_cols.append(fcol_trailing)
-  # fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_both', sorted(feature_frame.mm_both.unique()))
-  # feat_cols.append(fcol_both)
+  fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trans', sorted(feature_frame.mm_trans.unique()))
+  feat_cols.append(fcol_trans)
+  fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
+  feat_cols.append(fcol_brackets)
+  fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_leading', sorted(feature_frame.mm_leading.unique()))
+  feat_cols.append(fcol_leading)
+  fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
+  feat_cols.append(fcol_trailing)
+  fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_both', sorted(feature_frame.mm_both.unique()))
+  feat_cols.append(fcol_both)
   return feat_cols
 
 def split_data(X_all, y_all, grouplabels):
@@ -396,6 +396,32 @@ def apply_model(model, X_test):
   preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
   return preds
 
+def plot_weights(model, feat_cols, plotfile):
+  logging.info('Drawing weights to {plotfile}...'.format(**vars()))
+  labels = list()
+  weights = list()
+  for fc in feat_cols:
+    if fc.key in ['mm_both']:
+      continue
+    elif fc.key in ['gc_cont']:
+      labels.extend([fc.key])
+    else:
+      labels.extend(['_'.join([fc.key, str(x)]) for x in fc.vocabulary_list])
+    varname = 'linear/linear_model/{fc.key}/weights'.format(**vars())
+    weights.extend(model.get_variable_value(varname).flatten())
+  plt.figure(figsize=(10,6))
+  ax = sns.barplot(labels, weights)
+  ax.set(ylim=(-.3, .3))
+  plt.setp(ax.get_xticklabels(), rotation=90)
+  plt.setp(ax.get_xticklabels(), fontsize=8)
+  plt.xlabel('Feature')
+  plt.ylabel('Weight')
+  main_title_str = 'Feature Weights'
+  plt.title(main_title_str)
+  plt.tight_layout()
+  plt.savefig(plotfile)
+  plt.clf()
+
 def train_eval_visualize(X_all, y_all, grouplabels, feat_cols):
   X_train, y_train, X_test, y_test = split_data(X_all, y_all, grouplabels)
   logging.info('Training model...'.format(**vars()))
@@ -412,13 +438,16 @@ def train_eval_visualize(X_all, y_all, grouplabels, feat_cols):
   logging.info(test_eval_str)
   logging.info('Applying model...'.format(**vars()))
   preds = apply_model(model, X_test)
-  plotfile = partnerfile(y_all.name + '.png')
+  pred_plotfile = partnerfile(y_all.name + '.png')
   plot_predictions(X_test,
                    y_test,
                    preds,
                    train_eval_str,
                    test_eval_str,
-                   plotfile)
+                   pred_plotfile)
+  weight_plotfile = partnerfile(y_all.name + '.weights.png')
+  plot_weights(model, feat_cols, weight_plotfile)
+
 
 if __name__ == '__main__':
   omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
@@ -428,7 +457,6 @@ if __name__ == '__main__':
   relative_gammas = relative_gammas_from_raw_data(rawfile, oneoffs, oddatafile)
   feature_frame = build_feature_frame(oneoffs)
   feat_cols = build_feature_columns(feature_frame)
-  logging.warn('WARNING: IGNORING EVERYTHING BUT MM_IDX')
   spans = ['03']
   for span in spans:
     logging.info('Working on **SPAN {span}**...'.format(**vars()))

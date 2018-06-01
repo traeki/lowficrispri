@@ -305,29 +305,29 @@ def build_feature_frame(mismatch_pairs):
 
 def build_feature_columns(feature_frame):
   feat_cols = list()
-  # fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'firstbase', sorted(feature_frame.firstbase.unique()))
-  # feat_cols.append(fcol_firstbase)
-  # fcol_gc = tf.feature_column.numeric_column('gc_cont')
-  # feat_cols.append(fcol_gc)
+  fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
+      'firstbase', sorted(feature_frame.firstbase.unique()))
+  feat_cols.append(fcol_firstbase)
+  fcol_gc = tf.feature_column.numeric_column('gc_cont')
+  feat_cols.append(fcol_gc)
   fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_idx', sorted(feature_frame.mm_idx.unique()))
   feat_cols.append(fcol_idx)
-  # fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trans', sorted(feature_frame.mm_trans.unique()))
-  # feat_cols.append(fcol_trans)
-  # fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
-  # feat_cols.append(fcol_brackets)
-  # fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_leading', sorted(feature_frame.mm_leading.unique()))
-  # feat_cols.append(fcol_leading)
-  # fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
-  # feat_cols.append(fcol_trailing)
-  # fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
-  #     'mm_both', sorted(feature_frame.mm_both.unique()))
-  # feat_cols.append(fcol_both)
+  fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trans', sorted(feature_frame.mm_trans.unique()))
+  feat_cols.append(fcol_trans)
+  fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
+  feat_cols.append(fcol_brackets)
+  fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_leading', sorted(feature_frame.mm_leading.unique()))
+  feat_cols.append(fcol_leading)
+  fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
+  feat_cols.append(fcol_trailing)
+  fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
+      'mm_both', sorted(feature_frame.mm_both.unique()))
+  feat_cols.append(fcol_both)
   return feat_cols
 
 def split_data(X_all, y_all, grouplabels):
@@ -364,10 +364,15 @@ def plot_predictions(X_test, y_test, preds, train_str, test_str, plotfile):
   logging.info('Drawing plot to {plotfile}...'.format(**vars()))
   plotframe = pd.DataFrame(y_test)
   plotframe['pred'] = preds
+  plotframe['firstbase'] = X_test.firstbase
+  plotframe['leading_mm'] = (X_test.mm_idx == 20)
+  plotframe = plotframe.loc[plotframe.leading_mm]
   plt.figure(figsize=(6,6))
   g = sns.lmplot(y_test.name,
                  'pred',
                  plotframe,
+                 hue='firstbase',
+                 fit_reg=False,
                  scatter_kws={
                    's': 2,
                    'alpha': 0.2,
@@ -428,7 +433,6 @@ if __name__ == '__main__':
   relative_gammas = relative_gammas_from_raw_data(rawfile, oneoffs, oddatafile)
   feature_frame = build_feature_frame(oneoffs)
   feat_cols = build_feature_columns(feature_frame)
-  logging.warn('WARNING: IGNORING EVERYTHING BUT MM_IDX')
   spans = ['03']
   for span in spans:
     logging.info('Working on **SPAN {span}**...'.format(**vars()))

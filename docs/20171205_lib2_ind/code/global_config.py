@@ -25,6 +25,9 @@ COUNT_GLOB = os.path.join(DATA_DIR, '??d?_*L00*.fastq.counts')
 # Background Data
 ORIG_MAP = os.path.join(DATA_DIR, 'orig_map.tsv')
 OLIGO_FILE = os.path.join(DATA_DIR, 'hawk1234.oligos')
+BROAD_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk12.oligos')
+MURAA_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk3.oligos')
+DFRA_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk4.oligos')
 GENOME = os.path.join(DATA_DIR, 'bsu.NC_000964.gb')
 TARGETFILE = os.path.join(DATA_DIR, 'lib234.targets.joined.tsv')
 JMPBMK_ANNOS = os.path.join(DATA_DIR,
