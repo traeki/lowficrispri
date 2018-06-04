@@ -83,7 +83,9 @@ def build_one_edit_pairs(omap_file):
   synthetic_singles = pd.DataFrame(synthetic_singles,
                                    columns=['variant', 'original'])
   orig_singles = omap_df.loc[omap_df.apply(one_base_off, axis=1)]
+  # TODO(jsh): reconstitute
   oneoffs = pd.concat([synthetic_singles, orig_singles], axis=0)
+  # oneoffs = synthetic_singles
   oneoffs = oneoffs.reset_index()[['variant', 'original']]
   return oneoffs
 
@@ -222,204 +224,19 @@ def compute_relative_gammas(rawdata, oneoffs, individual_gammas):
                           left_on='variant', right_on='variant',
                           how='left')
   child_gammas.set_index(['variant', 'original'], inplace=True)
-  geodelt_gammas = child_gammas / parent_gammas
+  geodelt_gammas = (child_gammas / parent_gammas) - 1
   filtered = geodelt_gammas.where(parent_gammas.abs() > (contspans.std()*15))
   return filtered
 
-# Functions to compute features, used by build_feature_frame() below.
-def get_gc_cont(row):
-  original = row['original']
-  return original.count('G') + original.count('C')
-def get_firstbase(row):
-  original = row['original']
-  return original[0]
-def get_mm_brackets(row):
-  variant = 'N' + row['variant'] + 'N'
-  original = 'N' + row['original'] + 'N'
-  for i in range(len(variant)):
-    if variant[i] != original[i]:
-      return ''.join([original[i-1], original[i+1]])
-def get_mm_leading(row):
-  variant = 'NN' + row['variant']
-  original = 'NN' + row['original']
-  for i in range(len(variant)):
-    if variant[i] != original[i]:
-      return original[i-2:i]
-def get_mm_trailing(row):
-  variant = row['variant'] + 'NG'
-  original = row['original'] + 'NG'
-  for i in range(len(variant)):
-    if variant[i] != original[i]:
-      return original[i+1:i+3]
-def get_mm_idx(row):
-  variant, original = row['variant'], row['original']
-  for i in range(len(variant)):
-    if variant[i] != original[i]:
-      return (20-i)
-def get_mm_trans(row):
-  variant, original = row['variant'], row['original']
-  for i in range(len(variant)):
-    if variant[i] != original[i]:
-      return ''.join([original[i], variant[i]])
-
-def build_feature_frame(mismatch_pairs):
-  """Computes all features for the provided mismatch pairs.
-  Args:
-    mismatch_pairs: dataframe with variant/original fields
-  Returns:
-    feature_frame:
-      multiindex is just mismatch_pairs
-      columns are the feature names
-  """
-  featset = list()
-  firstbase = mismatch_pairs.apply(get_firstbase, axis=1)
-  firstbase.name = 'firstbase'
-  featset.append(firstbase)
-  gc_cont = mismatch_pairs.apply(get_gc_cont, axis=1)
-  gc_cont.name = 'gc_cont'
-  featset.append(gc_cont)
-  mm_brackets = mismatch_pairs.apply(get_mm_brackets, axis=1)
-  mm_brackets.name = 'mm_brackets'
-  featset.append(mm_brackets)
-  mm_leading = mismatch_pairs.apply(get_mm_leading, axis=1)
-  mm_leading.name = 'mm_leading'
-  featset.append(mm_leading)
-  mm_trailing = mismatch_pairs.apply(get_mm_trailing, axis=1)
-  mm_trailing.name = 'mm_trailing'
-  featset.append(mm_trailing)
-  mm_idx = mismatch_pairs.apply(get_mm_idx, axis=1)
-  mm_idx.name = 'mm_idx'
-  featset.append(mm_idx)
-  mm_trans = mismatch_pairs.apply(get_mm_trans, axis=1)
-  mm_trans.name = 'mm_trans'
-  featset.append(mm_trans)
-  # Try the joint feature in case it allows better outcomes.
-  mm_zip = zip(mm_idx, mm_trans)
-  mm_both = ['{0:02}/{1}'.format(*x) for x in mm_zip]
-  mm_both = pd.Series(mm_both, index=mm_trans.index)
-  mm_both.name = 'mm_both'
-  featset.append(mm_both)
-  feature_frame = pd.concat([mismatch_pairs] + featset, axis=1)
-  feature_frame.set_index(['variant', 'original'], inplace=True)
-  return feature_frame
-
-def build_feature_columns(feature_frame):
-  feat_cols = list()
-  fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
-      'firstbase', sorted(feature_frame.firstbase.unique()))
-  fcol_firstbase = tf.feature_column.indicator_column(fcol_firstbase)
-  feat_cols.append(fcol_firstbase)
-  fcol_gc = tf.feature_column.numeric_column('gc_cont')
-  feat_cols.append(fcol_gc)
-  fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_idx', sorted(feature_frame.mm_idx.unique()))
-  fcol_idx = tf.feature_column.indicator_column(fcol_idx)
-  feat_cols.append(fcol_idx)
-  fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_trans', sorted(feature_frame.mm_trans.unique()))
-  fcol_trans = tf.feature_column.indicator_column(fcol_trans)
-  feat_cols.append(fcol_trans)
-  fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
-  fcol_brackets = tf.feature_column.indicator_column(fcol_brackets)
-  feat_cols.append(fcol_brackets)
-  fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_leading', sorted(feature_frame.mm_leading.unique()))
-  fcol_leading = tf.feature_column.indicator_column(fcol_leading)
-  feat_cols.append(fcol_leading)
-  fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
-  fcol_trailing = tf.feature_column.indicator_column(fcol_trailing)
-  feat_cols.append(fcol_trailing)
-  fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_both', sorted(feature_frame.mm_both.unique()))
-  fcol_both = tf.feature_column.indicator_column(fcol_both)
-  feat_cols.append(fcol_both)
-  return feat_cols
-
-def split_data(X_all, y_all, grouplabels):
-  gss = GroupShuffleSplit(test_size=0.3, random_state=42)
-  splititer = gss.split(X_all, y_all, grouplabels)
-  train_rows, test_rows = splititer.next()
-  train_rows = shuffle(train_rows)
-  test_rows = shuffle(test_rows)
-  X_train = X_all.loc[train_rows, :]
-  y_train = y_all.loc[train_rows]
-  X_test = X_all.loc[test_rows, :]
-  y_test = y_all.loc[test_rows]
-  return X_train, y_train, X_test, y_test
-
-def train_model(X_train, y_train, grouplabels, model_dir):
-  model = tf.estimator.DNNRegressor(feature_columns=feat_cols,
-                                    hidden_units=[5,20,5],
-                                    model_dir=model_dir)
-  train_input_func = tf.estimator.inputs.pandas_input_fn(
-      x=X_train, y=y_train,
-      batch_size=10, num_epochs=None,
-      shuffle=True)
-  model.train(input_fn=train_input_func, steps=4000)
-  return model
-
-def evaluate_model(model, X_eval, y_eval):
-  eval_input_func = tf.estimator.inputs.pandas_input_fn(
-      x=X_eval, y=y_eval,
-      batch_size=10, num_epochs=1,
-      shuffle=False)
-  eval_out = model.evaluate(input_fn=eval_input_func)
-  return eval_out
-
-def plot_predictions(X_test, y_test, preds, train_str, test_str, plotfile):
-  logging.info('Drawing plot to {plotfile}...'.format(**vars()))
-  plotframe = pd.DataFrame(y_test)
-  plotframe['pred'] = preds
-  plt.figure(figsize=(6,6))
-  g = sns.lmplot(y_test.name,
-                 'pred',
-                 plotframe,
-                 scatter_kws={
-                   's': 2,
-                   'alpha': 0.2,
-                 })
-  g.set(ylim=(-.1, 2), xlim=(-.1, 2))
-  plt.xlabel('Measured')
-  plt.ylabel('Predicted')
-  main_title_str = 'Ratios of Phenotype (Child / Parent)'
+def plot_relgamma_distribution(relgammas, plotfile):
+  logging.info('Plotting relgamma dist to {plotfile}...'.format(**vars()))
+  plt.figure(figsize=(10,6))
+  ax = sns.distplot(relgammas)
+  main_title_str = 'Distribution of Relative Gammas'
   plt.title(main_title_str)
-  plt.text(0, 1.5, '\n'.join([train_str, test_str]))
   plt.tight_layout()
   plt.savefig(plotfile)
   plt.clf()
-
-def apply_model(model, X_test):
-  test_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-      x=X_test, shuffle=False)
-  preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
-  return preds
-
-def train_eval_visualize(X_all, y_all, grouplabels, feat_cols):
-  X_train, y_train, X_test, y_test = split_data(X_all, y_all, grouplabels)
-  logging.info('Training model...'.format(**vars()))
-  model_dir = partnerfile(y_all.name + '.model')
-  if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
-  model = train_model(X_train, y_train, feat_cols, model_dir)
-  logging.info('Evaluating model...'.format(**vars()))
-  train_eval = evaluate_model(model, X_train, y_train)
-  train_eval_str = 'TRAIN EVAL:\n{train_eval}'.format(**vars())
-  logging.info(train_eval_str)
-  test_eval = evaluate_model(model, X_test, y_test)
-  test_eval_str = 'TEST EVAL:\n{test_eval}'.format(**vars())
-  logging.info(test_eval_str)
-  logging.info('Applying model...'.format(**vars()))
-  preds = apply_model(model, X_test)
-  pred_plotfile = partnerfile(y_all.name + '.png')
-  plot_predictions(X_test,
-                   y_test,
-                   preds,
-                   train_eval_str,
-                   test_eval_str,
-                   pred_plotfile)
-
 
 if __name__ == '__main__':
   omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
@@ -432,8 +249,6 @@ if __name__ == '__main__':
   od_data = get_od_data(oddatafile)
   solo_gammas = normalize_gammas(rawdata, smooth_gammas, od_data)
   relative_gammas = compute_relative_gammas(rawdata, oneoffs, solo_gammas)
-  feature_frame = build_feature_frame(oneoffs)
-  feat_cols = build_feature_columns(feature_frame)
   trainlist = set([x.strip() for x in open(gcf.BROAD_OLIGO_FILE)])
   dfralist = set([x.strip() for x in open(gcf.DFRA_OLIGO_FILE)])
   muraalist = set([x.strip() for x in open(gcf.MURAA_OLIGO_FILE)])
@@ -441,14 +256,12 @@ if __name__ == '__main__':
   for span in spans:
     logging.info('Working on **SPAN {span}**...'.format(**vars()))
     span_gammas = relative_gammas[[span]]
-    X_y = pd.merge(feature_frame, span_gammas,
-                   left_index=True, right_index=True)
-    usable_data = X_y.loc[~X_y[span].isnull()]
+    usable_data = span_gammas.loc[~span_gammas[span].isnull()]
     broad_check = lambda x: x in trainlist
     broad_mask = usable_data.reset_index().variant.apply(broad_check)
     broad_mask.index = usable_data.index
     usable_data = usable_data.loc[broad_mask]
-    X_all = usable_data[feature_frame.columns].reset_index(drop=True)
-    y_all = usable_data[span].reset_index(drop=True)
-    grouplabels = usable_data.reset_index().variant
-    train_eval_visualize(X_all, y_all, grouplabels, feat_cols)
+    # TODO(jsh): reconstitute
+    rgdist_plotfile = partnerfile('png')
+    # rgdist_plotfile = partnerfile('synth.png')
+    plot_relgamma_distribution(usable_data, rgdist_plotfile)

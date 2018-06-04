@@ -222,7 +222,7 @@ def compute_relative_gammas(rawdata, oneoffs, individual_gammas):
                           left_on='variant', right_on='variant',
                           how='left')
   child_gammas.set_index(['variant', 'original'], inplace=True)
-  geodelt_gammas = child_gammas / parent_gammas
+  geodelt_gammas = (child_gammas / parent_gammas) - 1
   filtered = geodelt_gammas.where(parent_gammas.abs() > (contspans.std()*15))
   return filtered
 
@@ -311,14 +311,6 @@ def build_feature_columns(feature_frame):
   feat_cols.append(fcol_firstbase)
   fcol_gc = tf.feature_column.numeric_column('gc_cont')
   feat_cols.append(fcol_gc)
-  fcol_idx = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_idx', sorted(feature_frame.mm_idx.unique()))
-  fcol_idx = tf.feature_column.indicator_column(fcol_idx)
-  feat_cols.append(fcol_idx)
-  fcol_trans = tf.feature_column.categorical_column_with_vocabulary_list(
-      'mm_trans', sorted(feature_frame.mm_trans.unique()))
-  fcol_trans = tf.feature_column.indicator_column(fcol_trans)
-  feat_cols.append(fcol_trans)
   fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
   fcol_brackets = tf.feature_column.indicator_column(fcol_brackets)
@@ -351,7 +343,7 @@ def split_data(X_all, y_all, grouplabels):
 
 def train_model(X_train, y_train, grouplabels, model_dir):
   model = tf.estimator.DNNRegressor(feature_columns=feat_cols,
-                                    hidden_units=[5,20,5],
+                                    hidden_units=[10,20,10],
                                     model_dir=model_dir)
   train_input_func = tf.estimator.inputs.pandas_input_fn(
       x=X_train, y=y_train,
@@ -380,12 +372,12 @@ def plot_predictions(X_test, y_test, preds, train_str, test_str, plotfile):
                    's': 2,
                    'alpha': 0.2,
                  })
-  g.set(ylim=(-.1, 2), xlim=(-.1, 2))
+  g.set(ylim=(-1.1, 1.1), xlim=(-1.1, 1.1))
   plt.xlabel('Measured')
   plt.ylabel('Predicted')
-  main_title_str = 'Ratios of Phenotype (Child / Parent)'
+  main_title_str = 'Relative Efficacy Change (Meas. v. Pred.)'
   plt.title(main_title_str)
-  plt.text(0, 1.5, '\n'.join([train_str, test_str]))
+  plt.text(-1, .75, '\n'.join([train_str, test_str]))
   plt.tight_layout()
   plt.savefig(plotfile)
   plt.clf()
