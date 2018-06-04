@@ -183,7 +183,8 @@ Marco
 
 ^^^^^^^^^^^
 
-* Train a classifier for what retains activity
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
   * Then sub-train on one side or the other or the middle
 
 * Try autoencoder to see what's important

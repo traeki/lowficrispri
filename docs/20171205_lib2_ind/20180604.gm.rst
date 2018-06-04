@@ -1,0 +1,86 @@
+20180603 TODO/plan
+==================
+
+* Clean up established issues
+  * Shift scripts to use broad library for training.
+  * Separate cross vs. non-cross feature runs
+
+* Heat map of cross scores
+
+* Plot density of relative gammas
+
+* Does native look different than synthetic?
+
+* redo heatmap for X only
+
+* Metric that actually measures "contribution to prediction"
+  * Use a metric like difference of average for feature category (Max ELife)
+  * Use score - 1
+
+  w 
+* Explicitly ask whether leading G as mismatch improves
+
+^^^^^^^^^^^
+
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
+  * Then sub-train on one side or the other or the middle
+
+* Try autoencoder to see what's important
+
+* Generally be able to run multiple tests and compare them.
+  * Get cross-validation properly set up.
+
+* Examine individual cases and sanity check
+
+* Put together presentation
+  * What do we WANT to talk about?
+  * Big open questions?
+  * ONLY background that points directly there.
+  * Choose 4 plots
+  * Anything else in "bonus slides".
+  * (Have plenty of bonus slides, though)
+
+20180604 GM
+===========
+
+Open Questions
+--------------
+
+* How best to characterize success (i.e. 5 of 10 statistics)
+* Why are broken guides so badly predicted?
+* What would be a good metric to reward outcomes?
+
+4 graphs
+--------
+* Distribution(s) of guides
+* Linear model
+* Weights (jointonly)
+* NN model
+* NN Tensorboard
+
+Bonus graphs
+------------
+* By-first-base guides
+* Forced-G guides
+* Weights (all)
+
+Notes/AIs
+---------
+
+jsh
+~~~
+* I really need to think explicitly about loss function
+  * Screwing up "exact" measure of 1 should matter less than missing LoF
+
+jeff
+~~~~
+
+carol
+~~~~~
+
+jason
+~~~~~
+
+horia
+~~~~~

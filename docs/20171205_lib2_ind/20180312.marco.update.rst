@@ -29,7 +29,8 @@ Carol
 * Determining a set of mismatched guides with appropriate knockdown.
 
    * from completed initial triplicate replicates of essential kd and 2
-     comprehensive libraries of dfrA and murAA, john will determine the following
+     comprehensive libraries of dfrA and murAA, john will determine the
+     following
 
     1. A series of guides expected to give knockdown in the appropriate range
        (close to no effect) + one that gives more significant knockdown.
