@@ -17,7 +17,6 @@
   * Use a metric like difference of average for feature category (Max ELife)
   * Use score - 1
 
-  w 
 * Explicitly ask whether leading G as mismatch improves
 
 ^^^^^^^^^^^
@@ -68,19 +67,95 @@ Bonus graphs
 Notes/AIs
 ---------
 
-jsh
-~~~
 * I really need to think explicitly about loss function
   * Screwing up "exact" measure of 1 should matter less than missing LoF
 
-jeff
-~~~~
+* For sure try L1/L2 tuning
 
-carol
-~~~~~
+* Probably just drop sub-variant pairs for training
 
-jason
-~~~~~
+* Build heatmap of *presence*
 
-horia
-~~~~~
+* DO K-FOLD VALIDATION
+
+* Look by eye at the broken guides
+
+* Feature idea: Half-transitions in isolation
+
+* group by guide family
+
+* look at fit to training data
+
+* train on just dfra, just muraa, see how those compare
+
+* residual per gene !!
+
+20180605 Plan
+=============
+
+Holdover
+--------
+
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
+  * Then sub-train on one side or the other or the middle
+
+* Try autoencoder to see what's important
+
+* Generally be able to run multiple tests and compare them.
+  * Get cross-validation properly set up.
+
+* Examine individual cases and sanity check
+
+From Marco/Jason 20180604 convo
+-------------------------------
+
+* For sure try L1/L2 tuning
+
+* Probably just drop sub-variant pairs for training * Build heatmap of *presence*
+
+* DO K-FOLD VALIDATION
+
+* Look by eye at the broken guides
+
+* Feature idea: Half-transitions in isolation
+
+* group by guide family
+
+* train on just dfra, just muraa, see how those compare
+
+* residual per gene !!
+
+Next Steps
+----------
+
+* Build heatmap of guide presence
+
+* Compute residual for each gene
+
+* Train separate classifiers on dfra/muraa libraries
+  * Compare to one another with each possible training set
+
+* Try to drill to Horia's suggestion
+  * Look at relgamma error as a function of measured *phenotype*
+  * Look at gamma error as a function of phenotype predicted from dfrA model
+  * Look at gamma error as a function of phenotype predicted from murAA model
+
+* Flesh out classifiers
+  * ROC curves
+  * Look by eye at broken guide pairs.  Obvious patterns?
+
+* [try] Group guides by original instead of by variant
+* [try] Ignore/drop single->double pairs
+* [try] classifier as pre-filter for regressor
+
+* Get K-fold cross-validation working
+  * Hopefully by, in part, getting multiple-run sessions working
+  * Good time to work in L1/L2 hyperparameterization...
+
+* (Re-)Add features
+  * half-transitions
+  * trans
+  * idx
+
+* Autoencoder to identify core features
