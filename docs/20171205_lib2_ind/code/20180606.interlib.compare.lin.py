@@ -396,7 +396,6 @@ def train_eval_visualize(X_train, y_train, trainkey,
     keptcols = ['03', 'y_pred', 'errerr']
     outframe = genegrouper.mean().sort_values('errerr')[keptcols]
     outframe.to_csv(groupedfile, sep='\t', float_format='%05.3f')
-  IPython.embed()
 
 
 if __name__ == '__main__':
