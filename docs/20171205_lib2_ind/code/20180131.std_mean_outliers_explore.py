@@ -109,4 +109,4 @@ nodrug_sigma = gammas[A].map(spl)
 z = orth_dist.divide(nodrug_sigma)
 z_bound = 6
 
-print annos.loc[z > z_bound].gene_name.value_counts()
+print(annos.loc[z > z_bound].gene_name.value_counts())

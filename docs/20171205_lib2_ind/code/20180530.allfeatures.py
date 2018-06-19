@@ -74,9 +74,9 @@ def one_base_off(row):
 def build_one_edit_pairs(omap_file):
   logging.info('Building one edit pairs from {omap_file}.'.format(**vars()))
   omap_df = pd.read_csv(omap_file, sep='\t')
-  omap = dict(zip(omap_df.variant, omap_df.original))
+  omap = dict(list(zip(omap_df.variant, omap_df.original)))
   synthetic_singles = list()
-  for variant, original in omap.iteritems():
+  for variant, original in omap.items():
     for sv in get_subvariants(variant, original):
       if sv in omap:
         synthetic_singles.append((variant, sv))
@@ -157,7 +157,8 @@ def diff_time(group, k=1):
   return wide.stack()
 
 def namespan_func(k):
-  def namespan((sid, tp)):
+  def namespan(xxx_todo_changeme):
+    (sid, tp) = xxx_todo_changeme
     front, back = tp-k, tp
     return '{sid}{front}{back}'.format(**vars())
   return namespan
@@ -191,7 +192,7 @@ def normalize_gammas(rawdata, XDDt, od_data):
   gt_map.drop(['sid'], axis=1, inplace=True)
   gt_map.set_index('spid', inplace=True)
   flatdf = XDDt / (gt_map.g_fit * gt_map.delta_t)
-  parts = map(lambda x: (x[:3], x[3:]), flatdf.columns)
+  parts = [(x[:3], x[3:]) for x in flatdf.columns]
   flatdf.columns = pd.MultiIndex.from_tuples(parts, names=['sid', 'span'])
   flatdf.sort_index(axis=1, inplace=True)
   return flatdf
@@ -294,7 +295,7 @@ def build_feature_frame(mismatch_pairs):
   mm_trans.name = 'mm_trans'
   featset.append(mm_trans)
   # Try the joint feature in case it allows better outcomes.
-  mm_zip = zip(mm_idx, mm_trans)
+  mm_zip = list(zip(mm_idx, mm_trans))
   mm_both = ['{0:02}/{1}'.format(*x) for x in mm_zip]
   mm_both = pd.Series(mm_both, index=mm_trans.index)
   mm_both.name = 'mm_both'
@@ -333,7 +334,7 @@ def build_feature_columns(feature_frame):
 def split_data(X_all, y_all, grouplabels):
   gss = GroupShuffleSplit(test_size=0.3, random_state=42)
   splititer = gss.split(X_all, y_all, grouplabels)
-  train_rows, test_rows = splititer.next()
+  train_rows, test_rows = next(splititer)
   train_rows = shuffle(train_rows)
   test_rows = shuffle(test_rows)
   X_train = X_all.loc[train_rows, :]

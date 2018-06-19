@@ -59,7 +59,8 @@ g_map = [[sid, g_fit(group)] for sid, group in od_data.groupby('sid')]
 g_map = pd.DataFrame(g_map, columns=['sid', 'g_fit'])
 
 def namespan_func(k):
-  def namespan((sid, tp)):
+  def namespan(xxx_todo_changeme):
+    (sid, tp) = xxx_todo_changeme
     front, back = tp-k, tp
     return '{sid}{front}{back}'.format(**vars())
   return namespan
@@ -138,7 +139,7 @@ gt_map.set_index('spid', inplace=True)
 
 logging.info('Dividing by measured gt...'.format(**vars()))
 flatdf = XDDt / (gt_map.g_fit * gt_map.delta_t)
-parts = map(lambda x: (x[:3], x[3:]), flatdf.columns)
+parts = [(x[:3], x[3:]) for x in flatdf.columns]
 flatdf.columns = pd.MultiIndex.from_tuples(parts, names=['sid', 'span'])
 flatdf.sort_index(axis=1, inplace=True)
 
@@ -165,7 +166,7 @@ pvalues = flatspans.groupby('variant', group_keys=False).apply(group_mwu)
 cps = pvalues.loc[control_mask]
 rps = pvalues.loc[~control_mask]
 
-print (rps < 0.001).sum()
-print (cps < 0.001).sum()
+print((rps < 0.001).sum())
+print((cps < 0.001).sum())
 
 IPython.embed()

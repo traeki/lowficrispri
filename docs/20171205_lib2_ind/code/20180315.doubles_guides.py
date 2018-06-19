@@ -62,7 +62,7 @@ cleaned = impute_over_nans(widediffdata)
 
 starts = cleaned.columns.get_level_values(0)
 ends= cleaned.columns.get_level_values(1)
-pairs = zip(starts, ends)
+pairs = list(zip(starts, ends))
 
 def relation(tagger):
     return [tagger(k) for k in pairs]

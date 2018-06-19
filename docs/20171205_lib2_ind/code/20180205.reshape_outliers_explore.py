@@ -109,4 +109,4 @@ z = orth_dist.divide(nodrug_sigma)
 p_cutoff = .05 / len(z)
 zb = st.norm.ppf(1 - (p_cutoff/2))
 
-print annos.loc[z > zb].gene_name.value_counts().head(20)
+print(annos.loc[z > zb].gene_name.value_counts().head(20))

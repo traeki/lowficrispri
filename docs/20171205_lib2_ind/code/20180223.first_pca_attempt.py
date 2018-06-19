@@ -53,7 +53,7 @@ genemap = genemap.reset_index().drop_duplicates().set_index('variant')
 PCADIM = .90
 pca = PCA(n_components=PCADIM)
 pca.fit(prepped)
-print len(pca.components_)
+print(len(pca.components_))
 pcnames = ['PC' + str(i) for i in range(1, len(pca.components_) + 1)]
 pca_warped = pca.transform(prepped)
 pca_warped = pd.DataFrame(pca_warped, columns=pcnames, index=prepped.index)
@@ -68,7 +68,7 @@ pdb.set_trace()
 
 cutoff = (2 * pca_warped.std())
 low3 = labeled_pcs.loc[labeled_pcs.PC3 < -cutoff.PC3]
-print low3.groupby('gene_name').PC3.count().sort_values().tail(10)
+print(low3.groupby('gene_name').PC3.count().sort_values().tail(10))
 
 rows = len(plotsets)
 cols = len(plotsets)

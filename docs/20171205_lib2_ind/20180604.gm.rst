@@ -112,7 +112,8 @@ From Marco/Jason 20180604 convo
 
 * For sure try L1/L2 tuning
 
-* Probably just drop sub-variant pairs for training * Build heatmap of *presence*
+* Probably just drop sub-variant pairs for training
+  * Build heatmap of *presence*
 
 * DO K-FOLD VALIDATION
 

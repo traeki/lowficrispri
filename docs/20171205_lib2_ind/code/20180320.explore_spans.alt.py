@@ -58,7 +58,7 @@ taggers['late'] = lambda s, e: (s[1] == '2' and e[1] == '3')
 
 starts = cleaned.columns.get_level_values(0)
 ends = cleaned.columns.get_level_values(1)
-pairs = zip(starts, ends)
+pairs = list(zip(starts, ends))
 
 def D_from_taggers(names):
   tags = [[taggers[t](s, e) for t in names] for (s, e) in pairs]
@@ -91,7 +91,7 @@ for shared in ['early', 'mid', 'late']:
 
 outer = [-1.2, 0.4]
 
-for name, residue in aligned.iteritems():
+for name, residue in aligned.items():
   relevant = [taggers[name](s, e) for (s, e) in pairs]
   fig = plt.figure(figsize=(6,6))
   g = sns.jointplot(glob_projection[:, relevant][:, 0],

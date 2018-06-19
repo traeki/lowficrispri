@@ -65,7 +65,7 @@ def first_base_off(row):
 def build_one_edit_pairs(omap_file):
   logging.info('Building one edit pairs from {omap_file}.'.format(**vars()))
   omap_df = pd.read_csv(omap_file, sep='\t')
-  omap = dict(zip(omap_df.variant, omap_df.original))
+  omap = dict(list(zip(omap_df.variant, omap_df.original)))
   first_to_g = omap_df.loc[omap_df.apply(first_base_off, axis=1)]
   first_to_g = first_to_g.reset_index()[['variant', 'original']]
   return first_to_g
@@ -140,7 +140,8 @@ def diff_time(group, k=1):
   return wide.stack()
 
 def namespan_func(k):
-  def namespan((sid, tp)):
+  def namespan(xxx_todo_changeme):
+    (sid, tp) = xxx_todo_changeme
     front, back = tp-k, tp
     return '{sid}{front}{back}'.format(**vars())
   return namespan
@@ -174,7 +175,7 @@ def normalize_gammas(rawdata, XDDt, od_data):
   gt_map.drop(['sid'], axis=1, inplace=True)
   gt_map.set_index('spid', inplace=True)
   flatdf = XDDt / (gt_map.g_fit * gt_map.delta_t)
-  parts = map(lambda x: (x[:3], x[3:]), flatdf.columns)
+  parts = [(x[:3], x[3:]) for x in flatdf.columns]
   flatdf.columns = pd.MultiIndex.from_tuples(parts, names=['sid', 'span'])
   flatdf.sort_index(axis=1, inplace=True)
   return flatdf

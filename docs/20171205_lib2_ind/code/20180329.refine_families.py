@@ -140,7 +140,7 @@ rawdata = pd.read_csv(rawfile, sep='\t', header=0, index_col=0)
 
 omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
 omap_df = pd.read_csv(omap_file, sep='\t')
-omap = dict(zip(omap_df.variant, omap_df.original))
+omap = dict(list(zip(omap_df.variant, omap_df.original)))
 
 # TODO(jsh): Compute the new family edge relationship
 
@@ -153,7 +153,7 @@ def get_subvariants(variant, original):
       if fixone != original:
         subvars.append(fixone)
   return subvars
-for variant, original in omap.iteritems():
+for variant, original in omap.items():
   for sv in get_subvariants(variant, original):
     if sv in omap:
       subchild_of.append((variant, sv))

@@ -59,7 +59,7 @@ taggers['high'] = lambda s, e: (s[0] != 'a' and s[2:] == 'd3')
 
 starts = cleaned.columns.get_level_values(0)
 ends = cleaned.columns.get_level_values(1)
-pairs = zip(starts, ends)
+pairs = list(zip(starts, ends))
 
 def D_from_taggers(names):
   tags = [[taggers[t](s, e) for t in names] for (s, e) in pairs]
@@ -90,7 +90,7 @@ for span in ['early', 'mid', 'late']:
   aligned[span] = rebase(A_exp_nodose, D[span])
 
 glob_projection = rebase(A_exp_nodose, D['glob'])
-for name, residue in aligned.iteritems():
+for name, residue in aligned.items():
   relevant = [taggers[name](s, e) for (s, e) in pairs]
   fig = plt.figure(figsize=(6,6))
   g = sns.jointplot(glob_projection[:, relevant][:, 0],

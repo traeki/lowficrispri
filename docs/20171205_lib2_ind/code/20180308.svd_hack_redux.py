@@ -112,7 +112,7 @@ C = V.dot(L.dot(Vt))
 
 #### <Mask Code>
 sample_ids = subset.columns.get_level_values(0)
-print sample_ids
+print(sample_ids)
 dim = len(sample_ids)
 tubes = [x[0]+x[2:] for x in sample_ids]
 spans = [x[1] for x in sample_ids]
@@ -139,7 +139,7 @@ samedose = np.fromfunction(np.vectorize(agreement(doses)),
 #### </Mask Code>
 
 mask = samedose & samespan
-print mask
+print(mask)
 # mask = np.ones_like(C)
 
 C_m = (C * mask)

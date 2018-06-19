@@ -31,7 +31,7 @@ rawdata = pd.read_csv(rawfile, sep='\t', header=0, index_col=0)
 
 omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
 omap_df = pd.read_csv(omap_file, sep='\t')
-omap = dict(zip(omap_df.variant, omap_df.original))
+omap = dict(list(zip(omap_df.variant, omap_df.original)))
 
 logging.info('Building "subparent" relation.'.format(**vars()))
 synthetic_singles = list()
@@ -43,7 +43,7 @@ def get_subvariants(variant, original):
       if fixone != original:
         subvars.append(fixone)
   return subvars
-for variant, original in omap.iteritems():
+for variant, original in omap.items():
   for sv in get_subvariants(variant, original):
     if sv in omap:
       synthetic_singles.append((variant, sv))
@@ -97,7 +97,8 @@ g_map = [[sid, g_fit(group)] for sid, group in od_data.groupby('sid')]
 g_map = pd.DataFrame(g_map, columns=['sid', 'g_fit'])
 
 def namespan_func(k):
-  def namespan((sid, tp)):
+  def namespan(xxx_todo_changeme):
+    (sid, tp) = xxx_todo_changeme
     front, back = tp-k, tp
     return '{sid}{front}{back}'.format(**vars())
   return namespan
@@ -176,7 +177,7 @@ gt_map.set_index('spid', inplace=True)
 
 logging.info('Dividing by measured gt...'.format(**vars()))
 flatdf = XDDt / (gt_map.g_fit * gt_map.delta_t)
-parts = map(lambda x: (x[:3], x[3:]), flatdf.columns)
+parts = [(x[:3], x[3:]) for x in flatdf.columns]
 flatdf.columns = pd.MultiIndex.from_tuples(parts, names=['sid', 'span'])
 flatdf.sort_index(axis=1, inplace=True)
 

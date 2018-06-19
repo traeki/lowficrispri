@@ -71,7 +71,7 @@ cleaned = impute_over_nans(widediffdata)
 
 starts = cleaned.columns.get_level_values(0)
 ends= cleaned.columns.get_level_values(1)
-pairs = zip(starts, ends)
+pairs = list(zip(starts, ends))
 minspans = [(s, e) for (s, e) in pairs if (int(e[1]) - int(s[1])) == 1]
 subset = cleaned[minspans]
 

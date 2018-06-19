@@ -1,0 +1,15 @@
+What the fuck, dfrA
+-------------------
+
+Okay, so it looks like all the way back the dawn of time, the ordering of the dfrA
+oligos got fucked in the eye.  So the code that assesses "highfi" for that file
+was effectively noise.
+
+TODO
+====
+
+* Extract the dna sequence of dfrA from the genome directly.
+* Figure out which of the dfrA oligos are actually *in* that DNA.
+* Label the rest based on ... best match
+* ...
+* Profit

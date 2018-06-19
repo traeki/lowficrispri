@@ -137,19 +137,19 @@ X = scaled
 
 # the p x p covariance matrix
 C = np.cov(X, rowvar=False)
-print "C = \n", C
+print("C = \n", C)
 # C is a symmetric matrix and so it can be diagonalized:
 l, principal_axes = np.linalg.eig(C)
 # sort results wrt. eigenvalues
 idx = l.argsort()[::-1]
 l, principal_axes = l[idx], principal_axes[:, idx]
 # the eigenvalues in decreasing order
-print "l = \n", l
+print("l = \n", l)
 # a matrix of eigenvectors (each column is an eigenvector)
-print "V = \n", principal_axes
+print("V = \n", principal_axes)
 # projections of X on the principal axes are called principal components
 principal_components = X.dot(principal_axes)
-print "Y = \n", principal_components
+print("Y = \n", principal_components)
 
 # we now perform singular value decomposition of X
 # "economy size" (or "thin") SVD
