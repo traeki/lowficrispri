@@ -1,0 +1,319 @@
+==============
+Residual TODOs
+==============
+
+* Implement the average, cutoff, backoff approach and compare DCA-glob
+  * Maybe recreate a'c'b *using* DCA, somehow
+  * **Evaluate the corner cases.**
+* Define the goals for what a library would be (both libraries)
+  * Which genes
+  * Guide properties
+* Assemble first pass library designs and discuss
+* "Normalize for per-gene effects" (I'm forgetting what that means...)
+* Make a beak "prediction" that can be tested downstream.
+* Take a swing at efficacy prediction, using DCA, sklearn, ...?
+* Can I test the "controls are actually noisier than sicks" idea?
+* Explore where genes are in the aggregate graph.
+
+=============
+20180314 Plan
+=============
+
+* Talk to Carol & Jason about library design
+
+  * Two guides per gene, one as close as possible, one ... a little bit away
+  * Look at template strand guides
+  * Design features for prediction
+
+* Try to remember what "Normalize for per-gene effects" means, in case it
+  matters
+* Implement Martin's idea and/or re-create using DCA
+
+===========================
+Thinking Jeff/Amy/Sy/Hao...
+===========================
+
+* SVD gets us only
+  * reversible scale
+  * implicit PCA
+* global+chem == chem
+* global == average
+
+* Great way to explicate AND CHECK semantics
+  * Any missing dimensions?
+  * Any empty dimensions?
+
+* Still kind of lacking on the best-gamma front.
+
+* Is it helpful to separate one axis of variation from another?
+  * Especially given that they inherently overlap in at least one "cell".
+
+* chem.(A - global) != chem
+
+* Need to compute scores on solo data, THEN recenter, rescale, compute
+  gammas, etc.
+
+* Great space for gamma reasoning is
+  * - non-experimental spans
+  * - dose spans
+
+In this space, we should check which spans differ the most from global
+average.
+  * subtract global space
+  * go into each span-space
+    * scale every individual vector to unit length
+  * just compute average in that space for directed residual
+  * how do they compare?
+  * aggregate that question by gene somehow?
+  * also pay attention to global average.
+
+* How vector-like is each gene?
+  * Is that the right measure?
+
+=============
+20180318 Plan
+=============
+
+* Send off pair file
+  * DONE
+* Can we say SOMETHING about off-strand?
+  * Slight hiccup -- processed data does not include offstrand guides
+* compare unitary span-space diffs
+  * Use that to evaluate/validate "best guess gamma" stuff
+* try out gene-orientation
+  * what is the relevant null hypothesis?
+
+===================
+Best Guess Thoughts
+===================
+
+We trust the values later more, because they better reflect steady state.
+
+If things are sick from early on, we should start to trust later values less.
+
+So assuming early values aren't super high, we want the later values.
+
+Best case is a nice set of values in the right range **on average**.
+
+So a key question is, if we don't have that, what difference does time-span
+make?
+
+If I look at the gammas measured after subtracting out global-chem, what do
+the individual spans look like?  Does that inform where we should be getting
+our data?
+* Zeroed out: great, we're all set.
+* ...???
+* PROFIT!
+
+================
+Normalizing Logs
+================
+
+Counts for a given sample total to X
+
+Normalizing those counts to a total of N is equivalent to
+
+* Compute shift = log2(N/X)
+* Add shift to every logged value
+
+Once I have logs, what do I do with them...
+
+I take various averages and subtract them from each other.  The shift should
+be part of the averaging.  If I have 1/2 the counts for one sample, that
+sample will contribute one less than it should to the average, and get a
+"bonus" one after the average.
+
+Thresholding/confidence measures should operate on the raw counts.  A read is
+a read.  (::eyeroll::)
+
+So, the steps are:
+
+* Compute and apply additive log-shift per sample
+* Perform linear operations via DCA
+* Compute column difference
+* Oh, shit.  If we do column difference after e.g. global average, we get
+  back zero growth for everything.  This cannot be correct.
+
+So what if we go back to the old approach:
+
+* Normalize up front
+* take clipped logs
+* compute **diffs**
+* recenter
+* scale by 1/gt
+
+These values are now comparable across queries
+
+* apply DCA
+* controls may have drifted to a non-zero median
+* is this actually bad?  why?
+* we could use mean, which should be robust to linear changes, but then we
+  are too influenced by outliers
+
+After conersation with Jason, I'm returning to the original outcome, but with
+more intent.  I.e. just keep recentering to the median unless/until we
+encounter an operation that makes that obviously dumb.  (In particular, maybe
+don't do that kind of recentering after row-DCA...)
+
+=========================
+Checking in on TODO items
+=========================
+
+* compare unitary span-space diffs
+  * Use that to evaluate/validate "best guess gamma" stuff
+  * Evaluate size and contents of null distribution
+* try out gene-orientation
+  * what is the relevant null hypothesis?
+* Explore where genes are in the aggregate graph. (i.e. gene-painting)
+* Make a beak "prediction" that can be tested downstream.
+* Take a swing at efficacy prediction, using DCA, sklearn, ...?
+
+=============
+20180320 Plan
+=============
+
+"Compere unitary span-space diffs".  Hmm...
+
+Null Hypothesis: It totally doesn't matter if we look at individual spans.
+
+Test: Consider each span's subspace MINUS the global space.
+
+* Verify that "average" is the same as "without loss of generality"
+* Plot global vs. span-residual for each span
+  * Add lines for sickline/nullbound
+* What would it mean to select above "sickline" and below "null" for each
+  graph?
+
+=========
+After Hao
+=========
+
+Let's take a full.  Step.  Back.
+
+I have 20/8/8 points for every single strain.  Those points are sampling
+against a growth function
+
+C.e^(1+gamma)gt
+
+Maybe some factor in there to account for the log2 vs ln thing.
+
+There's another rho factor somewhere to account for dosed points.
+
+What we're trying to do is fit against gamma/rho
+
+There aren't *actually* missing data points, that's coming from thresholding
+gammas.  (Zero is a number!)
+
+Fit the datapoints for each strain to a line, getting back gamma and C
+
+QUESTIONS
+---------
+* What is the right residual for this fit?
+
+  * That is, what is the measure of how bad the individual fit is?
+  * Something about negative control fitting needs to happen, maybe here?
+
+* What is the measure of success -- i.e. how good does the fit *need* to be?
+  This seems likely to be the right determinant of thresholding/dropping
+* Does quality of fit vary by gene or other strain feature?
+* What is the impact on the residual of...
+
+  * ...Varying g
+  * ...Thresholding out data below N
+  * ...dropping timepoints
+
+* How can we connect this kind of analysis with a DCA beak-hunt?
+
+  * Maybe beak strains are simply strains that have a higher residual than we
+    would expect?  Maybe plot residual as a function of C, gamma?
+  * Especially we would be interested in guides with different residuals
+    *compared to the gene group*
+
+* Are some genes better-residualed?  Why?  What can I say about that?
+
+* TUNE G FIT W.R.T. CONTROLS
+
+============
+After Henele
+============
+
+Later:
+* Explore where genes are in the aggregate graph. (i.e. gene-painting)
+* Make a beak "prediction" that can be tested downstream.
+
+Soon:
+* Finish building fully normalized [gamma * alpha = X] representation of data
+* Compute SVD and take a look at that simple answer (plot vs. previous 'best')
+* Use TensorFlow to
+  * build a graph that computes all the multiples
+  * feed training examples in to pairs of variables
+  * avoid SVD pitfall -- regularize to plausible "gt"
+  * figure out how to add "trust weight" to samples
+  * PLACEHOLDER: train those weights via cross-validation ...
+  * PLACEHOLDER: train (?) a trust weight for raw count
+
+=============
+20180327 Jeff
+=============
+
+Jeff wants a copy of the X grid divided by g∆t (i.e. skew measures).
+
+I should ideally do batch-effect removal first, then hand that over.
+
+Also, batch effect removal might improve my outcomes.  Worth trying.
+
+====================
+20180328 Carol/Jason
+====================
+
+1. Still build Jeff's table, and ideally do some plotting by sous
+
+2. Derive all edit-distance-one subtrees, filter by parent-gamma consistency
+
+* How many are there?
+* Broken down by gene, how many edges are there?
+* Where are we losing the guides that aren't there?
+  * ...no parent
+  * ...low-confidence parent
+
+=====================
+20180402 Following up
+=====================
+
+TODO item in the code right now is:
+
+* Filter families by parent gamma stability (?)
+
+That actually doesn't look super compelling as an approach, so what actually
+makes sense, here?  I want to do do things
+
+1. Figure out which things agree.
+2. Do something sensible
+   * ideally somehow both **continuous** and **maximal**, even though...
+
+Okay, so what if I compute scipy.stats.ttest_rel for every set of
+measurement pairs?  That gives me back a shift in mean and a probability of
+consistency.  I can then use the average of each set, but weight by the
+p-value of the null distribution.
+
+...we should talk to a statistician soon.  This is probably kind of ...
+abusive.  But!  It's something to start.
+
+Notably, this will not work for items in isolation.  Those should have a
+value of zero for this feature.
+
+====================
+20180402 Jason Convo
+====================
+
+Having seen the poor outcome of the ttest_rel plan (basically drops anything
+not RIGHT on the diagonal), I talked to Jason.
+
+New plan:
+
+1. Try a non-parametric test to determine significance of non-zeroness for
+   each guide.
+
+2. Compare that test across all timepoint pairs.
+
+3. Pick best timepoint pair, and just use that.

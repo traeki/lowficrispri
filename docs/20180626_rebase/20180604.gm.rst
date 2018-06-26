@@ -1,0 +1,162 @@
+20180603 TODO/plan
+==================
+
+* Clean up established issues
+  * Shift scripts to use broad library for training.
+  * Separate cross vs. non-cross feature runs
+
+* Heat map of cross scores
+
+* Plot density of relative gammas
+
+* Does native look different than synthetic?
+
+* redo heatmap for X only
+
+* Metric that actually measures "contribution to prediction"
+  * Use a metric like difference of average for feature category (Max ELife)
+  * Use score - 1
+
+* Explicitly ask whether leading G as mismatch improves
+
+^^^^^^^^^^^
+
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
+  * Then sub-train on one side or the other or the middle
+
+* Try autoencoder to see what's important
+
+* Generally be able to run multiple tests and compare them.
+  * Get cross-validation properly set up.
+
+* Examine individual cases and sanity check
+
+* Put together presentation
+  * What do we WANT to talk about?
+  * Big open questions?
+  * ONLY background that points directly there.
+  * Choose 4 plots
+  * Anything else in "bonus slides".
+  * (Have plenty of bonus slides, though)
+
+20180604 GM
+===========
+
+Open Questions
+--------------
+
+* How best to characterize success (i.e. 5 of 10 statistics)
+* Why are broken guides so badly predicted?
+* What would be a good metric to reward outcomes?
+
+4 graphs
+--------
+* Distribution(s) of guides
+* Linear model
+* Weights (jointonly)
+* NN model
+* NN Tensorboard
+
+Bonus graphs
+------------
+* By-first-base guides
+* Forced-G guides
+* Weights (all)
+
+Notes/AIs
+---------
+
+* I really need to think explicitly about loss function
+  * Screwing up "exact" measure of 1 should matter less than missing LoF
+
+* For sure try L1/L2 tuning
+
+* Probably just drop sub-variant pairs for training
+
+* Build heatmap of *presence*
+
+* DO K-FOLD VALIDATION
+
+* Look by eye at the broken guides
+
+* Feature idea: Half-transitions in isolation
+
+* group by guide family
+
+* look at fit to training data
+
+* train on just dfra, just muraa, see how those compare
+
+* residual per gene !!
+
+20180605 Plan
+=============
+
+Holdover
+--------
+
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
+  * Then sub-train on one side or the other or the middle
+
+* Try autoencoder to see what's important
+
+* Generally be able to run multiple tests and compare them.
+  * Get cross-validation properly set up.
+
+* Examine individual cases and sanity check
+
+From Marco/Jason 20180604 convo
+-------------------------------
+
+* For sure try L1/L2 tuning
+
+* Probably just drop sub-variant pairs for training
+  * Build heatmap of *presence*
+
+* DO K-FOLD VALIDATION
+
+* Look by eye at the broken guides
+
+* Feature idea: Half-transitions in isolation
+
+* group by guide family
+
+* train on just dfra, just muraa, see how those compare
+
+* residual per gene !!
+
+Next Steps
+----------
+
+* Build heatmap of guide presence
+
+* Compute residual for each gene
+
+* Train separate classifiers on dfra/muraa libraries
+  * Compare to one another with each possible training set
+
+* Try to drill to Horia's suggestion
+  * Look at relgamma error as a function of measured *phenotype*
+  * Look at gamma error as a function of phenotype predicted from dfrA model
+  * Look at gamma error as a function of phenotype predicted from murAA model
+
+* Flesh out classifiers
+  * ROC curves
+  * Look by eye at broken guide pairs.  Obvious patterns?
+
+* [try] Group guides by original instead of by variant
+* [try] Ignore/drop single->double pairs
+* [try] classifier as pre-filter for regressor
+
+* Get K-fold cross-validation working
+  * Hopefully by, in part, getting multiple-run sessions working
+  * Good time to work in L1/L2 hyperparameterization...
+
+* (Re-)Add features
+  * half-transitions
+  * trans
+  * idx
+
+* Autoencoder to identify core features

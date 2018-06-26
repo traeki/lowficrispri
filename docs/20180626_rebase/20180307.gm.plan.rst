@@ -1,0 +1,202 @@
+=======
+GM Plan
+=======
+
+Introduction
+++++++++++++
+
+* Basic reminder of why variable-efficacy CRISPRi
+* Description of experimental layout
+
+Explanation of goals
+++++++++++++++++++++
+
+META GOAL 1: Design Next Library
+--------------------------------
+
+* Identify most phenotypically informative guides in existing set
+* Predict efficacy/information of future guides.
+
+META GOAL 2: Extract Biological Insight From Growth Experiments
+---------------------------------------------------------------
+
+* Distinguish **Biology** vs. **Noise** vs. **Bias**
+* Ascribe semantics to mathematical **Biology**
+
+*************
+Show heatmaps
+*************
+
+**************************
+Show unadorned beak-graphs
+**************************
+
+* Overall signal looks good
+* "Beak" artifact is recurring
+* Clearly not an isolated screwup
+
+Specific next objectives
+++++++++++++++++++++++++
+
+Distinguish Biology from Bias/Noise
+-----------------------------------
+* Can we get rid of the beak?
+* Can we smooth out the noise for high gammas?
+* What *is* the beak?
+
+Design Next Library
+-------------------
+* What is the right measure of gamma for choosing the most useful guides
+* Can we predict that value from other features (e.g. sequence, location, ...)
+
+Explain the approach
+++++++++++++++++++++
+
+* Singular Value Decomposition (~PCA)
+  * Find most variance-explaining basis vectors in measurement-space
+  * Smooth away remaining variation as noise/bias
+
+****************************
+Show round-trip PC1-5 graphs
+****************************
+
+Beak-hunting
+------------
+
+* The beak is captured in a specific principal component
+* Invert matrix to look at principal components in **strain-space**
+* Identify outliers in each principle component
+  * Most informative strains
+* "Paint" outliers and see if beak pops out
+
+********************************
+Show refined beak-painting graph
+********************************
+
+*****************
+Show beak members
+*****************
+
+
+=========
+Questions
+=========
+
+1. How can we best estimate growth phenotypes?
+
+  * What is "true gamma"? (gamma is not a fixed point, varies by context.)
+  * Is SVD-smoothing data a good approximation?
+  * How can we validate/evaluate our approximation?
+  * How many components should we retain?
+
+2. How can we best characterize/clean **Noise** and **Bias**?
+
+  * Are noise/bias features reliably *sequestered* by SVD?
+  * Are noise/bias features reliably *separated* by SVD?
+  * Is PCA on transpose matrix a good path to predicting bias?
+
+3. Can we use SVD to separate unknown effects from known effects?
+
+  * In-condition vs. cross-condition (i.e. beak prevention)
+  * Sequence effects vs. gene effects (i.e. guide design)
+
+==========
+Take aways
+==========
+
+1. **Do heatmaps**
+
+  * of gammas
+  * of raw log counts
+  * normalize by initial count
+  * cluster (if only to make rendering plausible)
+
+2. Martin totally digs the transpose-SVD scanning
+
+  * Identify
+
+    * families of selected guides
+    * guides that have whatever putative properties (stretches above threshold
+      for homopolymer, etc.)
+
+  * **Map those guides onto the visualization**
+  * Color those guides based on a non-binary identification (similarity, in
+    family vs. in-gene, etc)
+  * Where do the other guies fall?
+  * If they don't look like they should be included in the same set...
+    * ... **Use them as Positive/Negative labels and build discriminators (SVM, ...)**
+  * Can we find cases where {rule} is disrupted and then {profit}?
+
+3. Can I collapse out...
+
+  * ... known conditions to get at unexpected dimensions of variation
+  * Martin cautions that a lot of the "unexpected dimensions" here will simply
+    be a consequence of the complicated nature of *doing CRISPRi* technically.
+    That might still be interesting, but it's not driving towards guide
+    selection or "real" biology, for the most part.
+  * ... inter-gene variability to get at guide-selection-driven variation
+  * ... inter-family dimensions to get at sequence/mismatch-derived variation
+  * Question left open / defferred, but *I* still think it's something to poke at.
+  * Martin strongly feels that **we should be doing something to normalize
+    for per-gene effects.**
+  * [To me still] unclear exactly how best to do that "normalization"
+
+4. Write a simple algorithm to, given a single gamma ascription, select 2 guides/gene
+
+  * Compare that between methods of gamma ascription
+  * Compare general guide ordering
+  * Non-parametric, or whatever
+  * **Evaluate the corner cases.**
+  * Two methods to start:
+
+    1. Go as late as statistically confident (how?)
+    2. Use PC1
+    3. (Secondary) Use PC1..N
+
+5. Do machine learning to predict guide efficacy...
+
+  * [Not from meeting] Add features (e.g. Nth base...) and re-compute SVD to
+    see if we can find most impactful features
+  * Other decomposers/discriminators/predictors...
+
+6. Compute SVD in either orientation for just actual replicates (e.g. 5
+   early-phase no-drug gammas).  How early do we see interesting variation captured.
+
+==========
+Next goals
+==========
+
+* Try SVD-painting in sets with unified span/condition.
+
+* Expand painted set by
+
+  * family
+  * gene
+  * homopolymer threshold
+
+* Heat Maps
+
+==========
+Soon goals
+==========
+
+Design Library
+--------------
+* Write simple algorithm for picking guides from gammas
+* Create gamma lists for
+
+  * PC1
+  * PC1..4
+  * Raw average
+
+* Non-parametric or similar comparison of ranking difference
+* Or maybe just stability of selected pairs?
+
+Build Predictor
+---------------
+* Add features to frame
+* Try SVD "feature selection*
+* Figure out basic steps to add whatever kind of predictor/classifier.
+
+  * Remember to test-validate/bootstrap/...
+

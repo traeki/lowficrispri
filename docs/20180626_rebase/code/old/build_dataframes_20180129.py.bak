@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+# Author: John Hawkins (jsh) [really@gmail.com]
+
+import matplotlib.pyplot as plt
+import numpy as np
+import os.path
+import pandas as pd
+import seaborn as sns
+import sys
+
+import pooled.data_to_dataframe as dtd
+import global_config as gcf
+
+
+# Generate raw counts DataFrame
+counts = dtd.pull_in_data(gcf.COUNT_GLOB, gcf.OLIGO_FILE)
+normal = dtd.normalize_counts(counts, gcf.NORMAL_SIZE, pseudocount=gcf.PSEUDO)
+
+# Build parallel annotations DataFrame based on targets file and genome
+annos = dtd.get_annotations(counts, gcf.GENOME, gcf.TARGETFILE, gcf.JMPBMK_ANNOS)
+
+# Compute gammas
+logs = dtd.log_counts(normal)
+pairs = dtd.pairlist(gcf.REPLICATES)
+diffs = dtd.compute_differences(counts, logs, pairs, gcf.THRESHOLD, gcf.PSEUDO)
+g1 = dtd.compute_g(gcf.OD_VS_TIME_D1)
+t1 = gcf.TIMEPOINTS_D1
+# g2 = dtd.compute_g(gcf.OD_VS_TIME_D2)
+# t2 = gcf.TIMEPOINTS_D2
+# g3 = dtd.compute_g(gcf.OD_VS_TIME_D3)
+# t3 = gcf.TIMEPOINTS_D3
+# TODO(jsh): make g a vector of g1, g1, g1, g2, g2, g2, g3, g3, g3 or whatever
+# TODO(jsh): figure out what to do about t
+nullmedian = diffs.loc[annos.control].median()
+gammas = dtd.compute_gammas(diffs, g1, t1, nullmedian)
+
+# Record checkpoint files for [normalized] counts, annotations, and gammas
+gammas.to_csv(os.path.join(gcf.OUTPUT_DIR, 'lib234.gammas.tsv'), sep='\t')
+annos.to_csv(os.path.join(gcf.OUTPUT_DIR, 'lib234.annos.tsv'), sep='\t')
+normal.to_csv(os.path.join(gcf.OUTPUT_DIR, 'lib234.normal.tsv'), sep='\t')

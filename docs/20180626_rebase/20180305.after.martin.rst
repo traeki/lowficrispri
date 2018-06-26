@@ -1,0 +1,464 @@
+================================
+META GOAL 1: Design Next Library
+================================
+
+* Identify most phenotypically informative guides in existing set
+* Predict efficacy/information of future guides.
+
+===============================================================
+META GOAL 2: Extract Biological Insight From Growth Experiments
+===============================================================
+
+* Distinguish **Biology** vs. **Noise** vs. **Bias**
+* Ascribe semantics to mathematical **Biology**
+
+=========
+Questions
+=========
+
+1. How can we best estimate growth phenotypes?
+
+  * What is "true gamma"? (gamma is not a fixed point, varies by context.)
+  * Is SVD-smoothing data a good approximation?
+  * How can we validate/evaluate our approximation?
+  * How many components should we retain?
+
+2. How can we best characterize/clean **Noise** and **Bias**?
+
+  * Are noise/bias features reliably *sequestered* by SVD?
+  * Are noise/bias features reliably *separated* by SVD?
+  * Is PCA on transpose matrix a good path to predicting bias?
+
+3. Can we use SVD to separate unknown effects from known effects?
+
+  * In-condition vs. cross-condition (i.e. beak prevention)
+  * Sequence effects vs. gene effects (i.e. guide design)
+
+==========
+Take aways
+==========
+
+1. **Do heatmaps**
+
+  * of gammas
+  * of raw log counts
+  * normalize by initial count
+  * cluster (if only to make rendering plausible)
+
+2. Martin totally digs the transpose-SVD scanning
+
+  * Identify
+
+    * families of selected guides
+    * guides that have whatever putative properties (stretches above threshold
+      for homopolymer, etc.)
+
+  * **Map those guides onto the visualization**
+  * Color those guides based on a non-binary identification (similarity, in
+    family vs. in-gene, etc)
+  * Where do the other guies fall?
+  * If they don't look like they should be included in the same set...
+    * ... **Use them as Positive/Negative labels and build discriminators (SVM, ...)**
+  * Can we find cases where {rule} is disrupted and then {profit}?
+
+3. Can I collapse out...
+
+  * ... known conditions to get at unexpected dimensions of variation
+  * Martin cautions that a lot of the "unexpected dimensions" here will simply
+    be a consequence of the complicated nature of *doing CRISPRi* technically.
+    That might still be interesting, but it's not driving towards guide
+    selection or "real" biology, for the most part.
+  * ... inter-gene variability to get at guide-selection-driven variation
+  * ... inter-family dimensions to get at sequence/mismatch-derived variation
+  * Question left open / defferred, but *I* still think it's something to poke at.
+  * Martin strongly feels that **we should be doing something to normalize
+    for per-gene effects.**
+  * [To me still] unclear exactly how best to do that "normalization"
+
+4. Write a simple algorithm to, given a single gamma ascription, select 2 guides/gene
+
+  * Compare that between methods of gamma ascription
+  * Compare general guide ordering
+  * Non-parametric, or whatever
+  * **Evaluate the corner cases.**
+  * Two methods to start:
+
+    1. Go as late as statistically confident (how?)
+    2. Use PC1
+    3. (Secondary) Use PC1..N
+
+5. Do machine learning to predict guide efficacy...
+
+  * [Not from meeting] Add features (e.g. Nth base...) and re-compute SVD to
+    see if we can find most impactful features
+  * Other decomposers/discriminators/predictors...
+
+6. Compute SVD in either orientation for just actual replicates (e.g. 5
+   early-phase no-drug gammas).  How early do we see interesting variation captured.
+
+==========
+Next goals
+==========
+
+* Try SVD-painting in sets with unified span/condition.
+
+* Expand painted set by
+
+  * family
+  * gene
+  * homopolymer threshold
+
+* Heat Maps
+
+==========
+Soon goals
+==========
+
+Design Library
+--------------
+* Write simple algorithm for picking guides from gammas
+* Create gamma lists for
+
+  * PC1
+  * PC1..4
+  * Raw average
+
+* Non-parametric or similar comparison of ranking difference
+* Or maybe just stability of selected pairs?
+
+Build Predictor
+---------------
+* Add features to frame
+* Try SVD "feature selection*
+* Figure out basic steps to add whatever kind of predictor/classifier.
+
+  * Remember to test-validate/bootstrap/...
+
+============
+New Analysis
+============
+
+SVD fits on only same-condition/same-span data lose fidelity because there
+aren't enough counter-example dimensions to distinguish random-walk false
+positives from the actual N-dimensional bias in the beak.
+
+Since we already know something about the subspaces in which we are and are not
+looking for signals, we want to bifurcate a space of measurements into
+"considered" and "ignored" subspaces, and then compute SVD over those spaces to
+find "interesting" signals and "noise/bias" signals, maybe?
+
+What would that look like?
+
+If we have a space Y of expected interaction dimensions, the range of those
+dimensions G = R(Y) is the interesting signals, and the null set B = N(Y) is
+the stuff we want to ignore, and/or the problematic biases.
+
+QUESTION: What would it mean for something to have components in both spaces?
+
+ANSWER?: Unclear, but such a thing would by definition have a shadow in each
+space, so we should find out.  I think it's mandatory that no vector (or
+component thereof) can exist outside G and B at the same time.
+
+If I define an m x m matrix M where M(i,j) is 1 if I care about the
+relationship between measurement i and measurement j, and zero otherwise, I
+think that matrix is the "Y" above, provided the relationships I do and do not
+care about can be specified pairwise.
+
+What would it mean for this to break down?  I certainly don't have a
+relationship I care about that includes part of a measurement, that's got to be
+all or nothing.  So this would mean I have a relationship that involves more
+than two whole axes, but is not described by pairwise relationships.  That's
+nonsense, clearly.  So, okay, we're good there.  the issue is really that I
+could in theory fuck up and not fully specify a subspace.  If I have M[a, b] ==
+0 and M[b, c] == 0, I'm pretty sure that means I better have M[a,c] == 0.
+Otherwise I could have, like, no relationship between span a and span b, no
+relationship betwen span b and span c, but somehow a relationship between span
+a and span c.  Or a relationship between a and b, but not b and a, also bad.
+
+But as long as I get that right, I think that matrix should flatten out the
+"don't care"dimensions.  Now, is there a way to flatten everything *else*?
+
+Also, that might all be kind of nonsense.  Not sure what M*x really would do,
+here...  Is M really dropping out exactly the stuff in the null space of Y?
+
+I might need to **Standardize** my input matrix.  Would this help with current
+PCA efforts?
+
+Reconciling SVD and PCA
+-----------------------
+
+I can confirm that
+
+V S.T U.T = X.T
+
+U S V.T = X
+
+and when I do PCA over the smaller dimension (measurements) I get the same
+components from sklearn.decomposition.PCA as from np.linalg.eig
+
+This implies that the discrepancy is because PCA(X) is not just the direct
+inversion of PCA(X.T) in the way that I've been assuming.
+
+V L V.T is the decomposition of C
+
+V' L' V'.T is the decomposition of C.T
+
+Since
+
+S.T == S
+
+L ~= S**2
+L' ~= S.T**2 = S**2
+
+I expect that
+
+svd(X.T).S ~= svd(X).S
+
+and that, when computable
+
+eig(X).L ~= eig(X.T).L
+
+And it's this last one that is false
+
+Okay, what's the math, here:
+
+L =  S**2/cx
+L' = S**2/cy
+
+cxL = cyL'
+
+L/L' = cy/cx = cc
+
+And yet that's still clearly false.
+
+Alright, so svd decomps are comparable.
+
+eig decomps are SUPER not.  WHY?!?!?
+
+Jesus, ok, finally.  The EIG/SVD/PCA only give the same outcomes if
+StandardScaler is applied **right before the split** into different approaches.
+In other words, I need to call scaler.fit_transform(X.T) in order to use X.T
+consistently.
+
+Oh!  Also!  ONLY USE THE TRANSLATION of the scaler, i.e. set with_std=False,
+otherwise PCA loses the beak.
+
+Mathing the Stone
+-----------------
+
+Okay, so now I've got the matrix math working sensibly.
+
+First pass didn't just obviously work correctly, and now I'm trying to figure
+out if that's a math problem, a signal problem, or an execution problem.
+
+The idea is to choose C' (based on C, but that's largely arbitrary), and then:
+
+C' -> V'L'Vt'
+Vt' -> ( X -> U'S'Vt' )
+
+I know that U (non-prime) has interesting features that I want to draw out.
+
+Thus far, U' does not.
+
+That might be because:
+
+1. The math is wrong
+
+   * U'S' = XV' is not a meaningful space to work in
+   * ergo, U' doesn't contain what I want
+   * I need to figure out a transformation M X M.T = X'
+   * "Sy's being lazy" math
+   * X' X'.T = C'
+   * The idea here is that only if all the math works from the top down does any
+     of it make sense, and only the U' derived from SVD(X') makes any sense.
+   * So then what would that transformation be?
+
+2. It's working fine, there's just some reason the data doesn't have this property
+
+   * I've correctly masked
+   * The math works
+   * I'm simply wrong about whether the signal I want is in fact contained in
+     the subspace I've masked onto
+   * If this is true, I should be able to recapitulate the beak analysis by
+     masking into exactly the space that I used to find that signal.
+   * Moreover, those U components should be identical.
+
+3. The math is correct and the signal is there, I've just failed to code
+
+   * e.g. I don't have the mask I think I do
+   * ...or I'm graphing the wrong thing
+   * ...or whatever.
+
+Currently I've got two grids, one pre-filtered, one null-masked, not producing
+the same results.  That's very surprising, so next step is figure out why.
+
+Oh, right.  Centering a sparse matrix is nonsense.  And if we don't center it,
+it won't agree.  Grr.
+
+Matrix math finally working as intended
+---------------------------------------
+
+Reassessed the goal based on earlier ideas and conversation with Sy.
+
+New formulation: If I can specify a set of relations D (vectors in feature space) that capture the set of things I do or don't care about for an analysis, I can use SVD(D) to define the four fundamental subspaces of those constraints, and particularly a basis for im(D) (the things in D's relations) ker(D) (the things invisible to D's relations)
+
+The goal here is:
+
+* ignore signal in expected dimensions to see signal in unexpected
+  dimensions
+* ignore signal in unexpected dimensions to see effect of intended variables
+
+What are "expected dimensions"?
+
+* Variation between two different drug conditions.
+* Variation between two different timespans.
+
+"Unexpected dimensions"?
+
+* Variation between samples at the same span and dose
+
+Other dimensions?
+
+* Variation between same time span on two different days.
+
+Not sure how to create a relation for "variation between".
+
+Correlation between is the complement of variation between.
+
+Define relations as the sets in which I want to capture correlation.  These relations define a space of anticipated correlations.
+
+Things that DO NOT CORRELATE within these relations are variation.
+
+Things that DO CORRELATE in a relation orthogonal to the specified relations would still be in the complement.
+
+Let's try to specify ALL relations that we expect.
+
+* global agreement
+  * (27)
+
+* all samples: dose
+  * (15, 6, 6)
+
+* all samples: span
+  * (9, 9, 9)
+
+* all samples: condition (drug&span)
+  * (5, 5, 5, 2, 2, 2, 2, 2, 2)
+
+* all samples: day
+  * (9, 9, 9)
+
+* all samples: tube
+  * (9, 9, 9)
+
+* all samples: replicate (day&tube)
+  * (3, 3, 3, 3, 3, 3, 3, 3, 3)
+
+Assuming we have F relations:
+
+If we specify a subset of F, D, what's left?
+
+* correlations in F-D
+* correlations in N(F) * uncorrelated variation (e.g. c0d1 is a unique snowflake)
+
+This should effectively be N(D)
+
+HOLY FUCKING SHIT IT WORKS OMG OMG OMG HOLY SHIT
+
+ALSO HOLY FUCKING SHIT
+
+I AM A GOLDEN GOD
+
+Okay, now what to do with it
+----------------------------
+
+Map through "legit" space to find good gammas
+
+* Just ditch noise
+* ditch noise and dose
+* ditch noise and dose and span (need different axis set)
+
+Compare ... rank ordering?
+
+* submapped PC1
+* submapped avg gamma
+* raw avg gamma
+
+What's the best metric for identifying "drugness"?
+
+* First attempt
+
+  * Ditch noise
+  * Separately score dose factor like _chem
+  * draw de-noised with chem score.
+
+* Goal: a super clean version of the "handle", colored
+
+Musings
+-------
+
+I could use this in a staged fashion to sub-partition space.
+
+First, what's global.
+
+Second, what's drug-associated.
+
+Third, what's... etc.
+
+Look at how far into each subspace we have to go to get most of the variance.
+
+* QUESTION: What is the relationship between S and "explained variance"?
+
+Assuming the answer is basically "first PC" for those first two subspaces, plot
+them against each other.
+
+Also, what happens if we round trip through global+drug and map those two PC1s
+onto the returned loci?
+
+PC1 of im_global(A) should be exactly global.
+
+im_dose(ker_global(A)) should have 3 PCs
+
+20180313 plan
+-------------
+
+Before GM, what are the punchiest and/or most important milestones I could try
+to hit?
+
+* What is the shape of the CONTROL points now?
+  * Can I rescale my "only component" in global space in alignment with scale
+    of gammas? [YES]
+* What is my current best guess at gamma
+  * Can I do anything to characterize the "goodness" of that measure?
+* Try to forward ID the beak
+  * Can I do this with strain-oriented subspace mapping?
+
+Other cool ideas
+++++++++++++++++
+
+* How to best capture "affected genes"?
+* Try coloring a couple of genes (::cough::dfrA::cough::)
+  * In dose v. glob
+  * ...Elsewhere?
+* re-map dose subspace by pair (i.e. force the axes into experimental alignment)
+* Would we get better gammas if we somehow factored in information specific to
+  the final span?
+  * This kind of question would be nice to have a harness for.
+  * I.e. compute a metric over a powerset of possible subspace inclusions
+
+Outcomes
+********
+
+* CONTROL points after mapping through "uniformity" space have a slightly
+  *larger* stddev than the pre-mapping points (in just the no-drug dimensions,
+  for the latter).
+  * Why would that be?
+  * Oh, because everything spread out.
+  * The number of things outside that boundary has actually increased.
+* Gamma is therefore probably a more useful metrci now than before.
+* Got better results with 90th %-ile for guide scores
+
+20180314 GM Notes
+=================
+
+

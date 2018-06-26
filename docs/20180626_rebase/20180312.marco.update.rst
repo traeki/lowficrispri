@@ -1,0 +1,60 @@
+=======================
+Milking the Marco Stone
+=======================
+
+Weissman Status
+---------------
+
+
+
+Project Goals
+-------------
+
+John
+++++
+
+* Design Next Library
+
+  * Identify most phenotypically informative guides in existing set
+  * Predict efficacy/information of future guides.
+
+* Extract Biological Insight From Growth Experiments
+
+  * Distinguish **Biology** vs. **Noise** vs. **Bias**
+  * Ascribe semantics to mathematical **Biology**
+
+Carol
++++++
+
+* Determining a set of mismatched guides with appropriate knockdown.
+
+   * from completed initial triplicate replicates of essential kd and 2
+     comprehensive libraries of dfrA and murAA, john will determine the
+     following
+
+    1. A series of guides expected to give knockdown in the appropriate range
+       (close to no effect) + one that gives more significant knockdown.
+
+    2. If possible, a set of "rules"  for guide design
+
+  * John will redesign library consisting of selected guides, and if some
+    general "rules" have been determined, see if he can make a useful library of
+    auxotrophs as a test set.
+
+* Using the mismatched guides to determine on and off target drug effects.
+
+  * John already has fluorescence data with  several mismatched  guides with
+    different  efficacies, in the absence and presence of drug,  He will
+    compare these data with similar data from pooled experiments across all guides.
+    My feeling is that these data will be complete, representing a stand alone
+    figure.
+
+  * John will use one or two more drug tests in the next redesigned library,
+    using different targets, to determine whether his initial results that marginal
+    knockdown leads to high drug sensitive are true across drugs.
+
+
+Submapping Discussion
+---------------------
+
+* Can this be used to narrow the null space and expose more variation

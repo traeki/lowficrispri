@@ -1,0 +1,203 @@
+Near-term Agenda
+++++++++++++++++
+
+First Tier
+----------
+
+* Fix the test data splitting.
+* Add evaluation/prediction of some sort.
+* "delta" -- subtractive vs. geometric...
+* filter guides with low gammas...
+
+* sampling across genes or families...
+
+Second Tier
+-----------
+
+* Add cross of mismatch location (?)
+* Add GC content
+* Add proximal bases
+
+Third Tier
+----------
+
+* Experiment with Neural Nets, Elastic Net, SVM, ...
+* Experiment with hyperparameters like optimizer
+* Build stub version of absolute predictor
+* Figure out inverted prediction (i.e. directly design guide for efficacy)
+
+Jason/Carol/Marco meeting 20180511
+==================================
+
+* Train on lib2, check out lib3/4 outcomes
+* Experiment with larger thresholds for dropping parents
+* Continue with Tier 2 work
+
+Meeting 20180517
+================
+
+* GC of parent as feature of delta
+* Try
+  * filtering on
+  * or just using outright
+  statistic of 5-fold groups
+
+* Color datapoints with seed mismatches
+* Get a handle on the TensorBoard and refactor
+
+Current Meeting 20180517
+========================
+
+Third Tier
+----------
+
+* Experiment with Neural Nets, Elastic Net, SVM, ...
+* Experiment with hyperparameters like optimizer
+* Build stub version of absolute predictor
+* Figure out inverted prediction (i.e. directly design guide for efficacy)
+
+Other TODO
+----------
+
+* Add feature for first base of guide
+* Graph parent guides colored by first base
+* Also look at mismatches specifically in the first guide
+
+* Compare to just using the position
+
+* Mapping to "success" ... i.e. get 5 from 10, what are the odds, etc.
+
+Once model looks better, revisit...:
+
+* statistic aggregation/filtering
+* filtering threshold
+*** train on lib2 and evaluate against lib3/4 ***
+* span relevance
+
+Open Questions
+--------------
+
+* Why is there no 0,0 blob?
+* What are the actual weights?
+
+20180529 Plan
+-------------
+
+1. Create first-base feature and annotation
+
+  * Plot first-base outcomes
+  * Color first-base mismatches
+
+2. Do comparison run with only position as feature.
+
+3. Figure out how to find the actual weights in TF/TB
+
+4. Think about how to assess "5 of 10" metric quantitatively.
+
+5. Try other models:
+
+   * Elastic Net & etc.
+   * SVM
+   * Neural Net variants
+
+6. Revisit open questions in most promising model(s)
+
+   * Are statistic aggregations better?
+   * What's the best filtering threshold?
+   * Which span gives best outcomes?
+   * What do we learn about lib3/4 when training just on lib2?
+   * Is there a blob at 0,0?
+
+20180601 Discussion
+===================
+
+Things I'd like to do still
+---------------------------
+
+* Get cross-validation properly set up.
+* Generally be able to run multiple tests and compare them.
+* Try alternate loss functions.
+* Figure out why there's no 0,0 blob.  =( =(
+* Use dfra lib as eval. [VERIFY WHICH IS DFRA]
+
+---
+
+* Save out figures for interim review
+  * Dump to folder during discussion next time
+* Examine individual cases and sanity check
+
+* Chase causes:
+  * train just on seed, just on non-seed
+  * look at weights
+* Try autoencoder
+
+* Build classifiers (broken vs. not)
+
+* Explicitly ask whether leading G as mismatch improves
+  * on just the broad library
+
+* Heat map of cross scores
+
+* Metric that actually measures "contribution to prediction"
+
+* Check with Marco about 0,0 blob
+
+* Look at From-G in-seed mismatches
+
+* Separate cross vs. non-cross feature runs
+
+* Shift scripts to use broad library for training.
+
+Marco
+-----
+
+* Plot density of relative gammas
+
+* Train a classifier for what retains activity
+  * Then sub-train on one side or the other or the middle
+
+* Use a metric like difference of average for feature category (Max ELife)
+
+* Use 1 - current_score ... or score - 1 o.O
+
+20180603 TODO/plan
+==================
+
+* Clean up established issues
+  * Shift scripts to use broad library for training.
+  * Separate cross vs. non-cross feature runs
+
+* Heat map of cross scores
+
+* Plot density of relative gammas
+
+* Does native look different than synthetic?
+
+* redo heatmap for X only
+
+* Metric that actually measures "contribution to prediction"
+  * Use a metric like difference of average for feature category (Max ELife)
+  * Use score - 1
+
+* Explicitly ask whether leading G as mismatch improves
+
+^^^^^^^^^^^
+
+* Train a classifier for what {does,doesn't} retain activity
+  * Plot ROC curve
+  * Then sub-train on one side or the other or the middle
+
+* Try autoencoder to see what's important
+
+* Generally be able to run multiple tests and compare them.
+  * Get cross-validation properly set up.
+
+* Examine individual cases and sanity check
+
+* Put together presentation
+  * What do we WANT to talk about?
+  * Big open questions?
+  * ONLY background that points directly there.
+  * Choose 4 plots
+  * Anything else in "bonus slides".
+  * (Have plenty of bonus slides, though)
