@@ -83,9 +83,7 @@ def build_one_edit_pairs(omap_file):
   synthetic_singles = pd.DataFrame(synthetic_singles,
                                    columns=['variant', 'original'])
   orig_singles = omap_df.loc[omap_df.apply(one_base_off, axis=1)]
-  # Let's drop synthetics for now
-  # oneoffs = pd.concat([synthetic_singles, orig_singles], axis=0)
-  oneoffs = orig_singles
+  oneoffs = pd.concat([synthetic_singles, orig_singles], axis=0)
   oneoffs = oneoffs.reset_index()[['variant', 'original']]
   return oneoffs
 
@@ -234,7 +232,7 @@ def compute_relative_gammas(rawdata, oneoffs, individual_gammas):
                           how='left')
   child_gammas.set_index(['variant', 'original'], inplace=True)
   geodelt_gammas = (child_gammas / parent_gammas) - 1
-  filtered = geodelt_gammas.where(parent_gammas.abs() > (contspans.std()*5))
+  filtered = geodelt_gammas.where(parent_gammas.abs() > (contspans.std()*10))
   return filtered
 
 # Functions to compute features, used by build_feature_frame() below.
@@ -354,7 +352,8 @@ def train_model(X_train, y_train, grouplabels, model_dir):
       x=X_train, y=y_train,
       batch_size=10, num_epochs=None,
       shuffle=True)
-  model.train(input_fn=train_input_func, steps=4000)
+  # TODO(jsh): ramp this back up after it works
+  model.train(input_fn=train_input_func, steps=100)
   return model
 
 def evaluate_model(model, X_eval, y_eval):
@@ -431,13 +430,13 @@ def train_eval_visualize(X_train, y_train, trainkey,
   logging.info(test_eval_str)
   logging.info('Applying model...'.format(**vars()))
   preds = apply_model(model, X_test)
-  pred_plotfile = partnerfile(threadlabel + '.png')
-  plot_predictions(X_test,
-                   y_test,
-                   preds,
-                   train_eval_str,
-                   test_eval_str,
-                   pred_plotfile)
+  IPython.embed()
+  plot_families(X_test,
+                y_test,
+                preds,
+                train_eval_str,
+                test_eval_str,
+                pred_plotfile)
   weight_plotfile = partnerfile(threadlabel + '.weights.png')
   plot_weights(model, feat_cols, weight_plotfile)
 
@@ -459,6 +458,9 @@ if __name__ == '__main__':
   gene = feature_frame.reset_index().variant.map(gene_map.gene_name)
   gene.index = feature_frame.index
   feature_frame['gene'] = gene
+  feature_frame.reset_index(inplace=True)
+  feature_frame['family'] = feature_frame.original
+  feature_frame.set_index(['variant', 'original'], inplace=True)
   feat_cols = build_feature_columns(feature_frame)
   guidesets = dict()
   guidesets['broad'] = set([x.strip() for x in open(gcf.BROAD_OLIGO_FILE)])
