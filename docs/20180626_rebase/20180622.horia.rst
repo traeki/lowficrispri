@@ -169,3 +169,14 @@ Next Steps
 * Compute non-parametric (i.e. rank) statistic for each family and/or globally
   * e.g. Spearman Correlation
 * Don't forget Marco's suggestion re pre-filtering
+
+20180627 Musings
+----------------
+
+* Update train/test to fractional for identity cases
+* Add a trained-on-everything, tested like self-self case
+* Report meta-stats (mean, median, std) of spearman
+[DEFER:* For test-set families, predict 10 guides to span y_pred (-1.0, 0.0)]
+* refactor out training
+* bring back NN
+* Classifiers?
