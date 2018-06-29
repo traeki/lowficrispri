@@ -2,7 +2,7 @@
 
 # Author: John Hawkins (jsh) [really@gmail.com]
 
-import os.path
+import pathlib
 import pandas as pd
 
 # Global Parameters
@@ -12,25 +12,25 @@ THRESHOLD = 50
 SICKLINE = -0.4
 
 # Data Paths
-DIR_PREFIX = os.path.join(os.path.dirname(__file__), '..')
-DATA_DIR = os.path.join(DIR_PREFIX, 'data')
-SCRIPTS_DIR = os.path.join(DIR_PREFIX, 'code')
-OUTPUT_DIR = os.path.join(DIR_PREFIX, 'output')
+DIR_PREFIX = pathlib.Path(__file__).parents[1]
+DATA_DIR = DIR_PREFIX / 'data'
+SCRIPTS_DIR = DIR_PREFIX / 'code'
+OUTPUT_DIR = DIR_PREFIX / 'output'
 
 # Experimental Data
 # Measured ODs for fitting the growth rate parameter "g"
-OD_FRAME = os.path.join(DATA_DIR, '20171205.od.v.time.tsv')
-COUNT_GLOB = os.path.join(DATA_DIR, '??d?_*L00*.fastq.counts')
+OD_FRAME = DATA_DIR / '20171205.od.v.time.tsv'
+COUNT_GLOB = DATA_DIR / '??d?_*L00*.fastq.counts'
 
 # Background Data
-ORIG_MAP = os.path.join(DATA_DIR, 'orig_map.tsv')
-OLIGO_FILE = os.path.join(DATA_DIR, 'hawk1234.oligos')
-BROAD_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk12.oligos')
-MURAA_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk3.oligos')
-DFRA_OLIGO_FILE = os.path.join(DATA_DIR, 'hawk4.oligos')
-GENOME = os.path.join(DATA_DIR, 'bsu.NC_000964.gb')
-TARGETFILE = os.path.join(DATA_DIR, 'lib234.targets.joined.tsv')
-JMPBMK_ANNOS = os.path.join(DATA_DIR,
+ORIG_MAP = DATA_DIR / 'orig_map.tsv'
+OLIGO_FILE = DATA_DIR / 'hawk1234.oligos'
+BROAD_OLIGO_FILE = DATA_DIR / 'hawk12.oligos'
+MURAA_OLIGO_FILE = DATA_DIR / 'hawk3.oligos'
+DFRA_OLIGO_FILE = DATA_DIR / 'hawk4.oligos'
+GENOME = DATA_DIR / 'bsu.NC_000964.gb'
+TARGETFILE = DATA_DIR / 'lib234.targets.joined.tsv'
+JMPBMK_ANNOS = (DATA_DIR /
     './B._subtilis_essential_and_reduced-fitness_genes_20160121.xlsx')
 REPLICATES = [['a0d1', 'a1d1', 'a2d1', 'a3d1'],
               ['b0d1', 'b1d1', 'b2d1', 'b3d1'],

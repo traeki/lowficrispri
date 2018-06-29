@@ -4,7 +4,7 @@
 import collections
 import itertools
 import logging
-import os.path
+import pathlib
 import re
 import sys
 
@@ -25,10 +25,8 @@ import IPython
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 np.set_printoptions(precision=4, suppress=True)
-PREFIX = os.path.splitext(os.path.basename(__file__))[0]
-def partnerfile(ext):
-  return os.path.join(gcf.OUTPUT_DIR, '.'.join([PREFIX, ext]))
 
+CODEFILE = pathlib.Path(__file__).name
 ALLSPANS = ['01', '12', '23', '02', '13', '03']
 
 # --------------------
@@ -83,7 +81,8 @@ def build_one_edit_pairs(omap_file):
   synthetic_singles = pd.DataFrame(synthetic_singles,
                                    columns=['variant', 'original'])
   orig_singles = omap_df.loc[omap_df.apply(one_base_off, axis=1)]
-  oneoffs = pd.concat([synthetic_singles, orig_singles], axis=0)
+  # oneoffs = pd.concat([synthetic_singles, orig_singles], axis=0)
+  oneoffs = orig_singles
   oneoffs = oneoffs.reset_index()[['variant', 'original']]
   return oneoffs
 
@@ -163,8 +162,8 @@ def diff_time(group, k=1):
   return wide.stack()
 
 def namespan_func(k):
-  def namespan(xxx_todo_changeme):
-    (sid, tp) = xxx_todo_changeme
+  def namespan(id_pair):
+    (sid, tp) = id_pair
     front, back = tp-k, tp
     return '{sid}{front}{back}'.format(**vars())
   return namespan
@@ -204,6 +203,43 @@ def normalize_gammas(rawdata, XDDt, od_data):
   flatdf.sort_index(axis=1, inplace=True)
   return flatdf
 
+
+def get_parent_gammas(rawdata, oneoffs, individual_gammas):
+  """Get like-indexed parent gammas.
+
+  Args:
+    oneoffs: two-column list of mismatch pairs
+    individual_gammas: normalized individual gammas
+  Returns:
+    parent_gammas: gammas for the 'original' of each pair
+  """
+  rawdata = rawdata.loc[~rawdata.index.duplicated()]
+  flatspans = individual_gammas.stack(level=0)
+  flatspans = flatspans.reset_index().drop('sid', axis=1)
+  parent_gammas = pd.merge(oneoffs, flatspans,
+                           left_on='original', right_on='variant',
+                           how='left', suffixes=('', '_orig'))
+  parent_gammas.drop('variant_orig', axis=1, inplace=True)
+  parent_gammas.set_index(['variant', 'original'], inplace=True)
+  return parent_gammas
+
+def get_child_gammas(rawdata, oneoffs, individual_gammas):
+  """Get like-indexed child gammas.
+
+  Args:
+    oneoffs: two-column list of mismatch pairs
+    individual_gammas: normalized individual gammas
+  Returns:
+    child_gammas: gammas for the 'variant' of each pair
+  """
+  rawdata = rawdata.loc[~rawdata.index.duplicated()]
+  flatspans = individual_gammas.stack(level=0)
+  flatspans = flatspans.reset_index().drop('sid', axis=1)
+  child_gammas = pd.merge(oneoffs, flatspans,
+                          left_on='variant', right_on='variant',
+                          how='left')
+  child_gammas.set_index(['variant', 'original'], inplace=True)
+  return child_gammas
 
 def compute_relative_gammas(rawdata, oneoffs, individual_gammas):
   """Compare gammas between "parent" and "child" strains.
@@ -352,8 +388,7 @@ def train_model(X_train, y_train, grouplabels, model_dir):
       x=X_train, y=y_train,
       batch_size=10, num_epochs=None,
       shuffle=True)
-  # TODO(jsh): ramp this back up after it works
-  model.train(input_fn=train_input_func, steps=100)
+  model.train(input_fn=train_input_func, steps=3000)
   return model
 
 def evaluate_model(model, X_eval, y_eval):
@@ -364,62 +399,45 @@ def evaluate_model(model, X_eval, y_eval):
   eval_out = model.evaluate(input_fn=eval_input_func)
   return eval_out
 
-def plot_predictions(X_test, y_test, preds, train_str, test_str, plotfile):
-  logging.info('Drawing plot to {plotfile}...'.format(**vars()))
-  plotframe = pd.DataFrame(y_test)
-  plotframe['pred'] = preds
-  plt.figure(figsize=(6,6))
-  g = sns.lmplot(y_test.name,
-                 'pred',
-                 plotframe,
-                 scatter_kws={
-                   's': 2,
-                   'alpha': 0.2,
-                 })
-  g.set(ylim=(-1.1, 1.1), xlim=(-1.1, 1.1))
-  plt.xlabel('Measured')
-  plt.ylabel('Predicted')
-  main_title_str = 'Relative Efficacy Change (Meas. v. Pred.)'
-  plt.title(main_title_str)
-  plt.text(-1, .75, '\n'.join([train_str, test_str]))
-  plt.tight_layout()
-  plt.savefig(plotfile)
-  plt.clf()
-
 def apply_model(model, X_test):
   test_pred_input_func = tf.estimator.inputs.pandas_input_fn(
       x=X_test, shuffle=False)
   preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
   return preds
 
-def plot_weights(model, feat_cols, plotfile):
-  logging.info('Drawing weights to {plotfile}...'.format(**vars()))
-  mm_both = next(x for x in feat_cols if x.key == 'mm_both')
-  varname = 'linear/linear_model/{mm_both.key}/weights'.format(**vars())
-  weights = model.get_variable_value(varname).flatten()
-  unsplit = mm_both.vocabulary_list
-  parts = [x.split('/') for x in unsplit]
-  idx, trans = list(zip(*[x.split('/') for x in unsplit]))
-  hmframe = pd.DataFrame([trans, idx, weights]).T
-  hmframe.columns = ['transition', 'base_index', 'weight']
-  hmframe.set_index(['transition', 'base_index'], inplace=True)
-  hmframe.weight = hmframe.weight.astype(float)
-  hmframe = hmframe.unstack()
-  plt.figure(figsize=(10,6))
-  ax = sns.heatmap(hmframe, vmin=-0.7, vmax=0.5)
-  main_title_str = 'Linear Model weights for [Base Index X Base Transition]'
+def spearman(group):
+  measured = (group.y_meas + 1) * group.parent
+  predicted = (group.y_pred + 1) * group.parent
+  return st.spearmanr(measured, predicted)
+
+def plot_family(name, group, plotfile):
+  gene = group.iloc[0].gene
+  family = name
+  measured = (group.y_meas + 1) * group.parent
+  predicted = (group.y_pred + 1) * group.parent
+  plt.figure(figsize=(6,6))
+  template = 'Predictions vs. Measurements\n{gene}: {family}'
+  main_title_str = template.format(**vars())
   plt.title(main_title_str)
+  g = plt.scatter(measured, predicted, s=3)
+  plt.xlim(-1.2, 0.2)
+  plt.ylim(-1.2, 0.2)
+  plt.xlabel('Measured')
+  plt.ylabel('Predicted')
+  rho, p_value = st.spearmanr(measured, predicted)
+  template = 'Spearman: {rho:.2f}, P-value: {p_value:.2f}'
+  plt.text(-1.1, 0.1, template.format(**vars()))
   plt.tight_layout()
   plt.savefig(plotfile)
-  plt.clf()
+  plt.close()
 
 def train_eval_visualize(X_train, y_train, trainkey,
                          X_test, y_test, testkey,
                          feat_cols):
   threadlabel = '.'.join(['t', trainkey, 'e', testkey])
-  model_dir = partnerfile(threadlabel + '.model')
-  if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
+  model_suffix = '.' + threadlabel + '.model'
+  model_dir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(model_suffix)
+  model_dir.mkdir(parents=True, exist_ok=True)
   model = train_model(X_train, y_train, feat_cols, model_dir)
   logging.info('Evaluating model...'.format(**vars()))
   train_eval = evaluate_model(model, X_train, y_train)
@@ -429,29 +447,33 @@ def train_eval_visualize(X_train, y_train, trainkey,
   test_eval_str = 'TEST EVAL:\n{test_eval}'.format(**vars())
   logging.info(test_eval_str)
   logging.info('Applying model...'.format(**vars()))
-  preds = apply_model(model, X_test)
-  IPython.embed()
-  plot_families(X_test,
-                y_test,
-                preds,
-                train_eval_str,
-                test_eval_str,
-                pred_plotfile)
-  weight_plotfile = partnerfile(threadlabel + '.weights.png')
-  plot_weights(model, feat_cols, weight_plotfile)
+  X_y_test = pd.concat([X_test, y_test], axis=1)
+  predictions = apply_model(model, X_test)
+  X_y_test['y_pred'] = predictions
+  # X_y_test['errerr'] = (X_y_test.y_pred - X_y_test[y_test.name]) ** 2
+  grouper = X_y_test.groupby('family')
+  plotdir_suffix = '.' + threadlabel + '.plots'
+  plotdir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(plotdir_suffix)
+  plotdir.mkdir(parents=True, exist_ok=True)
+  logging.info('Plotting Families to {plotdir}...'.format(**vars()))
+  for name, group in grouper:
+    exemplar = group.iloc[0]
+    ext = '.' + exemplar.gene + '.' + exemplar.family + '.png'
+    plotfile = (plotdir / CODEFILE).with_suffix(ext)
+    plot_family(name, group, plotfile)
 
 
 if __name__ == '__main__':
-  omap_file = os.path.join(gcf.DATA_DIR, 'orig_map.tsv')
+  span = '03'
+  omap_file = gcf.DATA_DIR / 'orig_map.tsv'
   oneoffs = build_one_edit_pairs(omap_file)
-  rawfile = os.path.join(gcf.OUTPUT_DIR, 'lib234.raw.tsv')
+  rawfile = gcf.OUTPUT_DIR / 'lib234.raw.tsv'
   rawdata = read_preprocessed_data(rawfile)
   rough_gammas = compute_rough_gammas(rawdata)
   smooth_gammas = dca_smooth_gammas(rough_gammas)
   oddatafile = gcf.OD_FRAME
   od_data = get_od_data(oddatafile)
   solo_gammas = normalize_gammas(rawdata, smooth_gammas, od_data)
-  relative_gammas = compute_relative_gammas(rawdata, oneoffs, solo_gammas)
   feature_frame = build_feature_frame(oneoffs)
   gene_map = rawdata.reset_index()[['variant', 'gene_name']].drop_duplicates()
   gene_map.set_index('variant', inplace=True)
@@ -461,19 +483,24 @@ if __name__ == '__main__':
   feature_frame.reset_index(inplace=True)
   feature_frame['family'] = feature_frame.original
   feature_frame.set_index(['variant', 'original'], inplace=True)
+  relative_gammas = compute_relative_gammas(rawdata, oneoffs, solo_gammas)
+  relative_gammas = relative_gammas[[span]]
+  relative_gammas.columns = ['y_meas']
+  parent_gammas = get_parent_gammas(rawdata, oneoffs, solo_gammas)
+  parent_gammas = parent_gammas[[span]]
+  parent_gammas.columns = ['parent']
+  supplement = pd.concat([relative_gammas, parent_gammas], axis=1)
+  feature_frame = pd.merge(feature_frame, supplement,
+                           left_index=True, right_index=True)
   feat_cols = build_feature_columns(feature_frame)
   guidesets = dict()
   guidesets['broad'] = set([x.strip() for x in open(gcf.BROAD_OLIGO_FILE)])
   guidesets['muraa'] = set([x.strip() for x in open(gcf.MURAA_OLIGO_FILE)])
   guidesets['dfra'] = set([x.strip() for x in open(gcf.DFRA_OLIGO_FILE)])
-  span = '03'
   for trainkey, testkey in itertools.product(guidesets, repeat=2):
     logging.info('TRAINING ON: {trainkey}'.format(**vars()))
     logging.info('TARGETING: {testkey}'.format(**vars()))
-    span_gammas = relative_gammas[[span]]
-    X_y = pd.merge(feature_frame, span_gammas,
-                   left_index=True, right_index=True)
-    usable_data = X_y.loc[~X_y[span].isnull()]
+    usable_data = feature_frame.loc[~feature_frame['y_meas'].isnull()]
     train_check = lambda x: x in guidesets[trainkey]
     test_check = lambda x: x in guidesets[testkey]
     train_mask = usable_data.reset_index().variant.apply(train_check)
@@ -482,10 +509,11 @@ if __name__ == '__main__':
     test_mask.index = usable_data.index
     train_data = usable_data.loc[train_mask]
     test_data = usable_data.loc[test_mask]
-    X_train = train_data[feature_frame.columns].reset_index(drop=True)
-    y_train = train_data[span].reset_index(drop=True)
-    X_test = test_data[feature_frame.columns].reset_index(drop=True)
-    y_test = test_data[span].reset_index(drop=True)
+    X_data = feature_frame.drop('y_meas', axis=1)
+    X_train = train_data[X_data.columns].reset_index(drop=True)
+    y_train = train_data['y_meas'].reset_index(drop=True)
+    X_test = test_data[X_data.columns].reset_index(drop=True)
+    y_test = test_data['y_meas'].reset_index(drop=True)
     train_eval_visualize(X_train, y_train, trainkey,
                          X_test, y_test, testkey,
                          feat_cols)
