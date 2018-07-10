@@ -10,3 +10,5 @@ docs/_build/
 *234*data*.tsv
 *234*raw*.tsv
 *model/
+*.un~
+desktop.ini

@@ -180,3 +180,14 @@ Next Steps
 * refactor out training
 * bring back NN
 * Classifiers?
+
+20180603 Plane Plan
+-------------------
+
+* Eyeball categorizability
+* Can we choose a Spearman floor?
+  * What's above the floor, family, gene
+* Run over drug data
+* Improve model
+* ...maybe look at timespans for dfrA data.
+* Plot AB scatters of Spearman
