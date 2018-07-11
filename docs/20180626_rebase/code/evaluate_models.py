@@ -19,6 +19,7 @@ from train_models import TRAIN_FILE
 from train_models import TEST_FILE
 from train_models import MODEL_DIRS
 from train_models import GUIDESETS
+from train_models import NN_LAYERS
 from train_models import build_feature_columns
 
 logging.basicConfig(level=logging.INFO,
@@ -46,8 +47,9 @@ def main():
   for modelkey in GUIDESETS:
     # load model from MODEL_DIR
     model_dir = MODEL_DIRS[modelkey]
-    model = tf.estimator.LinearRegressor(feature_columns=feat_cols,
-                                         model_dir=model_dir)
+    model = tf.estimator.DNNRegressor(feature_columns=feat_cols,
+                                      hidden_units=NN_LAYERS,
+                                      model_dir=model_dir)
     for evalkey, guideset in GUIDESETS.items():
       for poolname, pool in data.items():
         template = 'EVALUATING {modelkey} MODEL on {evalkey}/{poolname}...'

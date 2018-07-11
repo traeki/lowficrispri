@@ -33,6 +33,7 @@ GUIDESETS['broad'] = set([x.strip() for x in open(gcf.BROAD_OLIGO_FILE)])
 GUIDESETS['muraa'] = set([x.strip() for x in open(gcf.MURAA_OLIGO_FILE)])
 GUIDESETS['dfra'] = set([x.strip() for x in open(gcf.DFRA_OLIGO_FILE)])
 GUIDESETS['all'] = set([x.strip() for x in open(gcf.OLIGO_FILE)])
+NN_LAYERS = [10,20,10]
 MODEL_DIRS = dict()
 for subset in GUIDESETS:
   base = gcf.OUTPUT_DIR / 'models' / CODEFILE
@@ -45,20 +46,25 @@ def build_feature_columns(feature_frame):
   feat_cols = list()
   fcol_firstbase = tf.feature_column.categorical_column_with_vocabulary_list(
       'firstbase', sorted(feature_frame.firstbase.unique()))
+  fcol_firstbase = tf.feature_column.indicator_column(fcol_firstbase)
   feat_cols.append(fcol_firstbase)
   fcol_gc = tf.feature_column.numeric_column('gc_cont')
   feat_cols.append(fcol_gc)
   fcol_brackets = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_brackets', sorted(feature_frame.mm_brackets.unique()))
+  fcol_brackets = tf.feature_column.indicator_column(fcol_brackets)
   feat_cols.append(fcol_brackets)
   fcol_leading = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_leading', sorted(feature_frame.mm_leading.unique()))
+  fcol_leading = tf.feature_column.indicator_column(fcol_leading)
   feat_cols.append(fcol_leading)
   fcol_trailing = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_trailing', sorted(feature_frame.mm_trailing.unique()))
+  fcol_trailing = tf.feature_column.indicator_column(fcol_trailing)
   feat_cols.append(fcol_trailing)
   fcol_both = tf.feature_column.categorical_column_with_vocabulary_list(
       'mm_both', sorted(feature_frame.mm_both.unique()))
+  fcol_both = tf.feature_column.indicator_column(fcol_both)
   feat_cols.append(fcol_both)
   return feat_cols
 
@@ -73,13 +79,14 @@ def split_data(all_data, grouplabels):
   return train, test
 
 def train_model(X_train, y_train, feat_cols, model_dir):
-  model = tf.estimator.LinearRegressor(feature_columns=feat_cols,
-                                       model_dir=model_dir)
+  model = tf.estimator.DNNRegressor(feature_columns=feat_cols,
+                                    hidden_units=NN_LAYERS,
+                                    model_dir=model_dir)
   train_input_func = tf.estimator.inputs.pandas_input_fn(
       x=X_train, y=y_train,
       batch_size=10, num_epochs=None,
       shuffle=True)
-  model.train(input_fn=train_input_func, steps=3000)
+  model.train(input_fn=train_input_func, steps=4000)
   return model
 
 
@@ -107,7 +114,6 @@ def main():
   feature_frame.set_index(['variant', 'original'], inplace=True)
   usable_data = feature_frame.loc[~feature_frame['y_meas'].isnull()]
   grouplabels = usable_data.family
-  # TODO(jsh) why are train/test coming back empty?
   train, test = split_data(usable_data, grouplabels)
   train.to_csv(TRAIN_FILE, sep='\t')
   test.to_csv(TEST_FILE, sep='\t')
