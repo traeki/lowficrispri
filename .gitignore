@@ -12,5 +12,4 @@ docs/_build/
 *model/
 *.un~
 desktop.ini
-*.png
 *.plots/

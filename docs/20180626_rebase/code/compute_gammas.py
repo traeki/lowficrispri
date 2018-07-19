@@ -66,7 +66,7 @@ def compute_rough_gammas(rawdata):
     diff = grouper.apply(diff_samples, k=i)
     diffcenters = diff.loc[rawdata.control].unstack(level=[-2,-1]).median()
     dg = diff.unstack(level=[-2,-1]).subtract(diffcenters, axis='columns')
-    mask = (rawdata.dose == 'sober')
+    mask = (rawdata.dose == 'high')
     chosen = dg.stack(level=[0,1]).loc[mask].unstack(level=[-2,-1])
     namespan = namespan_func(i)
     chosen.columns = chosen.columns.map(namespan)
@@ -141,7 +141,7 @@ def normalize_gammas(rawdata, XDDt, od_data):
   for i in range(1, 4):
     namespan = namespan_func(i)
     diff = grouper.apply(diff_time, i)
-    chosen = diff.loc[rawdata.dose == 'sober'].unstack(level=[-2,-1])
+    chosen = diff.loc[rawdata.dose == 'high'].unstack(level=[-2,-1])
     chosen.columns = chosen.columns.map(namespan)
     relevant.append(chosen)
   t_map = pd.concat(relevant, axis=1).iloc[0]
