@@ -33,6 +33,8 @@ np.set_printoptions(precision=4, suppress=True)
 CODEFILE = pathlib.Path(__file__).name
 STATFILE = (gcf.OUTPUT_DIR / CODEFILE).with_suffix('.stats.tsv')
 
+_USE_RHOBIN = False
+
 # --------------------
 
 def apply_model(model, X_test):
@@ -42,17 +44,26 @@ def apply_model(model, X_test):
   return preds
 
 def plot_family(name, group, rho, pv, measured, predicted, plotfile):
+  if _USE_RHOBIN:
+    rhobin = 'low'
+    if rho > 0.3:
+      rhobin = 'mid'
+    if rho > 0.6:
+      rhobin = 'high'
+    plotfile = plotfile.with_suffix('.' + rhobin + '.png')
+  else:
+    plotfile = plotfile.with_suffix('.png')
   gene = group.iloc[0].gene
   family = name
   plt.figure(figsize=(6,6))
   template = 'Predictions vs. Measurements\n{gene}: {family}'
   main_title_str = template.format(**vars())
   plt.title(main_title_str)
-  g = plt.scatter(measured, predicted, s=3)
+  g = plt.scatter(predicted, measured, s=3)
   plt.xlim(-1.2, 0.2)
   plt.ylim(-1.2, 0.2)
-  plt.xlabel('Measured')
-  plt.ylabel('Predicted')
+  plt.xlabel('Predicted')
+  plt.ylabel('Measured')
   template = 'Spearman: {rho:.2f}, P-value: {pv:.2f}'
   plt.text(-1.1, 0.1, template.format(**vars()))
   plt.tight_layout()
@@ -110,9 +121,9 @@ def main():
           gene = exemplar.gene
           ext = '.' + gene + '.' + family + '.png'
           plotfile = (plotdir / CODEFILE).with_suffix(ext)
-          measured = (group.y_meas + 1) * group.parent
           predicted = (group.y_pred + 1) * group.parent
-          rho, pv = st.spearmanr(measured, predicted)
+          measured = (group.y_meas + 1) * group.parent
+          rho, pv = st.spearmanr(predicted, measured)
           plot_family(family, group, rho, pv, measured, predicted, plotfile)
           result = dict()
           result['model'] = modelkey
