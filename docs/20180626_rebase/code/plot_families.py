@@ -83,61 +83,67 @@ def main():
   gene_map = rawdata.reset_index()[['variant', 'gene_name']].drop_duplicates()
   gene_map.set_index('variant', inplace=True)
   feat_cols = build_feature_columns(data['train'])
-  keys = itertools.product(GUIDESETS, GUIDESETS, data)
+  # keys = itertools.product(GUIDESETS, GUIDESETS, data)
   results = list()
   # loop over models
-  for modelkey in GUIDESETS:
+  modelkey = 'broad'
+  validoligs = gcf.DATA_DIR / 'validate.oligos'
+  GUIDESETS['validate'] = set([x.strip() for x in open(validoligs)])
+  # for modelkey in GUIDESETS:
+  for modelkey in ['broad']:
     # load model from MODEL_DIR
     model_dir = MODEL_DIRS[modelkey]
     model = tf.estimator.LinearRegressor(feature_columns=feat_cols,
                                          model_dir=model_dir)
-    for evalkey, guideset in GUIDESETS.items():
-      for poolname, pool in data.items():
-        template = 'PLOTTING {modelkey} MODEL of {evalkey}/{poolname}...'
-        logging.info(template.format(**vars()))
-        eval_check = lambda x: x in guideset
-        eval_mask = pool.reset_index().variant.apply(eval_check)
-        eval_mask.index = pool.index
-        eval_data = pool.loc[eval_mask]
-        data_columns = set(pool.columns) - set('y_meas')
-        output_columns = set(['y_meas'])
-        X_eval = eval_data[list(data_columns)].reset_index(drop=True)
-        gene = X_eval.reset_index().variant.map(gene_map.gene_name)
-        gene.index = X_eval.index
-        X_eval['gene'] = gene
-        y_eval = eval_data[list(output_columns)].reset_index(drop=True)
-        preds = apply_model(model, X_eval)
-        X_eval['y_meas'] = y_eval.y_meas
-        X_eval['y_pred'] = preds
-        grouper = X_eval.groupby('family')
-        threadlabel = '.'.join([modelkey, 'on', evalkey, poolname])
-        plotdir_suffix = '.' + threadlabel + '.plots'
-        plotdir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(plotdir_suffix)
-        shutil.rmtree(plotdir, ignore_errors=True)
-        plotdir.mkdir(parents=True, exist_ok=True)
-        logging.info('Plotting Families to {plotdir}...'.format(**vars()))
-        for family, group in grouper:
-          exemplar = group.iloc[0]
-          gene = exemplar.gene
-          ext = '.' + gene + '.' + family + '.png'
-          plotfile = (plotdir / CODEFILE).with_suffix(ext)
-          predicted = (group.y_pred + 1) * group.parent
-          measured = (group.y_meas + 1) * group.parent
-          rho, pv = st.spearmanr(predicted, measured)
-          plot_family(family, group, rho, pv, measured, predicted, plotfile)
-          result = dict()
-          result['model'] = modelkey
-          result['target'] = evalkey
-          result['subset'] = poolname
-          result['family'] = family
-          result['gene'] = gene
-          result['rho'] = rho
-          result['p_value'] = pv
-          results.append(pd.Series(result))
-  results = pd.DataFrame(results)
-  results.set_index(['model', 'target', 'subset', 'family'], inplace=True)
-  logging.info('Saving statistics to {STATFILE}...'.format(**globals()))
-  results.to_csv(STATFILE, sep='\t')
+    # for evalkey, guideset in GUIDESETS.items():
+    evalkey, guideset = ('validate', GUIDESETS['validate'])
+    poolname, pool = ('all', data['all'])
+    # for poolname, pool in data.items():
+    template = 'PLOTTING {modelkey} MODEL of {evalkey}/{poolname}...'
+    logging.info(template.format(**vars()))
+    eval_check = lambda x: x in guideset
+    eval_mask = pool.reset_index().variant.apply(eval_check)
+    eval_mask.index = pool.index
+    eval_data = pool.loc[eval_mask]
+    data_columns = set(pool.columns) - set('y_meas')
+    output_columns = set(['y_meas'])
+    X_eval = eval_data[list(data_columns)].reset_index(drop=True)
+    gene = X_eval.reset_index().variant.map(gene_map.gene_name)
+    gene.index = X_eval.index
+    X_eval['gene'] = gene
+    y_eval = eval_data[list(output_columns)].reset_index(drop=True)
+    preds = apply_model(model, X_eval)
+    X_eval['y_meas'] = y_eval.y_meas
+    X_eval['y_pred'] = preds
+    grouper = X_eval.groupby('family')
+    threadlabel = '.'.join([modelkey, 'on', evalkey, poolname])
+    plotdir_suffix = '.' + threadlabel + '.plots'
+    plotdir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(plotdir_suffix)
+    shutil.rmtree(plotdir, ignore_errors=True)
+    plotdir.mkdir(parents=True, exist_ok=True)
+    logging.info('Plotting Families to {plotdir}...'.format(**vars()))
+    for family, group in grouper:
+      exemplar = group.iloc[0]
+      gene = exemplar.gene
+      ext = '.' + gene + '.' + family + '.png'
+      plotfile = (plotdir / CODEFILE).with_suffix(ext)
+      predicted = (group.y_pred + 1) * group.parent
+      measured = (group.y_meas + 1) * group.parent
+      rho, pv = st.spearmanr(predicted, measured)
+      plot_family(family, group, rho, pv, measured, predicted, plotfile)
+      result = dict()
+      result['model'] = modelkey
+      result['target'] = evalkey
+      result['subset'] = poolname
+      result['family'] = family
+      result['gene'] = gene
+      result['rho'] = rho
+      result['p_value'] = pv
+      results.append(pd.Series(result))
+  # results = pd.DataFrame(results)
+  # results.set_index(['model', 'target', 'subset', 'family'], inplace=True)
+  # logging.info('Saving statistics to {STATFILE}...'.format(**globals()))
+  # results.to_csv(STATFILE, sep='\t')
 
 
 if __name__ == '__main__':
