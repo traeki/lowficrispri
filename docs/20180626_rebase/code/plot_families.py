@@ -24,8 +24,7 @@ from train_models import TRAIN_FILE
 from train_models import TEST_FILE
 from train_models import MODEL_DIRS
 from train_models import GUIDESETS
-from train_models import build_feature_columns
-
+from train_models import build_feature_columns 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 np.set_printoptions(precision=4, suppress=True)
@@ -43,12 +42,12 @@ def apply_model(model, X_test):
   preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
   return preds
 
-def plot_family(name, group, rho, pv, measured, predicted, plotfile):
+def plot_family(name, group, sprrho, prsrho, measured, predicted, plotfile):
   if _USE_RHOBIN:
     rhobin = 'low'
-    if rho > 0.3:
+    if sprrho > 0.3:
       rhobin = 'mid'
-    if rho > 0.6:
+    if sprrho > 0.6:
       rhobin = 'high'
     plotfile = plotfile.with_suffix('.' + rhobin + '.png')
   else:
@@ -64,7 +63,7 @@ def plot_family(name, group, rho, pv, measured, predicted, plotfile):
   plt.ylim(-1.2, 0.2)
   plt.xlabel('Predicted')
   plt.ylabel('Measured')
-  template = 'Spearman: {rho:.2f}, P-value: {pv:.2f}'
+  template = 'Spearman: {sprrho:.2f}, Pearson: {prsrho:.2f}'
   plt.text(-1.1, 0.1, template.format(**vars()))
   plt.tight_layout()
   plt.savefig(plotfile)
@@ -123,16 +122,19 @@ def main():
           plotfile = (plotdir / CODEFILE).with_suffix(ext)
           predicted = (group.y_pred + 1) * group.parent
           measured = (group.y_meas + 1) * group.parent
-          rho, pv = st.spearmanr(predicted, measured)
-          plot_family(family, group, rho, pv, measured, predicted, plotfile)
+          sprrho, sprpv = st.spearmanr(predicted, measured)
+          prsrho, prspv = st.pearsonr(predicted, measured)
+          plot_family(family, group, sprrho, prsrho, measured, predicted, plotfile)
           result = dict()
           result['model'] = modelkey
           result['target'] = evalkey
           result['subset'] = poolname
           result['family'] = family
           result['gene'] = gene
-          result['rho'] = rho
-          result['p_value'] = pv
+          result['sprpv'] = sprpv
+          result['prspv'] = prspv
+          result['sprrho'] = sprrho
+          result['prsrho'] = prsrho
           results.append(pd.Series(result))
   results = pd.DataFrame(results)
   results.set_index(['model', 'target', 'subset', 'family'], inplace=True)
