@@ -24,13 +24,23 @@ from train_models import TRAIN_FILE
 from train_models import TEST_FILE
 from train_models import MODEL_DIRS
 from train_models import GUIDESETS
-from train_models import build_feature_columns 
+from train_models import build_feature_columns
+
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 np.set_printoptions(precision=4, suppress=True)
 
 CODEFILE = pathlib.Path(__file__).name
 STATFILE = (gcf.OUTPUT_DIR / CODEFILE).with_suffix('.stats.tsv')
+
+_RAWDATA = read_preprocessed_data(RAW_FILE)
+GENE_MAP = _RAWDATA.reset_index()[['variant', 'gene_name']]
+GENE_MAP = GENE_MAP.drop_duplicates()
+GENE_MAP.set_index('variant', inplace=True)
+OFFSETS = _RAWDATA.reset_index()[['variant', 'gene_len', 'offset']]
+OFFSETS = OFFSETS.drop_duplicates()
+OFFSETS.set_index('variant', inplace=True)
+
 
 _USE_RHOBIN = False
 
@@ -42,7 +52,7 @@ def apply_model(model, X_test):
   preds = [x['predictions'][0] for x in model.predict(test_pred_input_func)]
   return preds
 
-def plot_gene(group, sprrho, prsrho, measured, predicted, plotfile):
+def plot_gene(group, sprrho, prsrho, plotfile):
   if _USE_RHOBIN:
     rhobin = 'low'
     if sprrho > 0.3:
@@ -57,13 +67,26 @@ def plot_gene(group, sprrho, prsrho, measured, predicted, plotfile):
   template = 'Predictions vs. Measurements\n{gene}'
   main_title_str = template.format(**vars())
   plt.title(main_title_str)
-  g = plt.scatter(predicted, measured, s=3, alpha=0.5)
   plt.xlim(-1.2, 0.2)
   plt.ylim(-1.2, 0.2)
   plt.xlabel('Predicted γ')
   plt.ylabel('Measured γ')
   template = 'Spearman: {sprrho:.2f}, Pearson: {prsrho:.2f}'
   plt.text(-1.1, 0.1, template.format(**vars()))
+  subgrouper = group.groupby('variant')
+  for variant, subgroup in subgrouper:
+    offset = OFFSETS.loc[variant].offset
+    gene_len = OFFSETS.loc[variant].gene_len
+    relative_offset = offset/gene_len
+    # enforce boundaries
+    if relative_offset > 1:
+      relative_offset = 1
+    if relative_offset < 0:
+      relative_offset = 0
+    color = cc.m_inferno(relative_offset)
+    predicted = (subgroup.y_pred + 1) * subgroup.parent
+    measured = (subgroup.y_meas + 1) * subgroup.parent
+    g = plt.scatter(predicted, measured, s=3, alpha=0.5, c=color)
   plt.tight_layout()
   plt.savefig(plotfile)
   plt.close()
@@ -77,9 +100,6 @@ def main():
   data['test'].fillna('NA', inplace=True)
   data['all'] = pd.concat([data['train'], data['test']], axis=0)
   # TODO(jsh): Break out genemap into separate computation
-  rawdata = read_preprocessed_data(RAW_FILE)
-  gene_map = rawdata.reset_index()[['variant', 'gene_name']].drop_duplicates()
-  gene_map.set_index('variant', inplace=True)
   feat_cols = build_feature_columns(data['train'])
   keys = itertools.product(GUIDESETS, GUIDESETS, data)
   results = list()
@@ -100,7 +120,7 @@ def main():
         data_columns = set(pool.columns) - set('y_meas')
         output_columns = set(['y_meas'])
         X_eval = eval_data[list(data_columns)].reset_index(drop=True)
-        gene = X_eval.reset_index().variant.map(gene_map.gene_name)
+        gene = X_eval.reset_index().variant.map(GENE_MAP.gene_name)
         gene.index = X_eval.index
         X_eval['gene'] = gene
         y_eval = eval_data[list(output_columns)].reset_index(drop=True)
@@ -123,7 +143,7 @@ def main():
           measured = (group.y_meas + 1) * group.parent
           sprrho, sprpv = st.spearmanr(predicted, measured)
           prsrho, prspv = st.pearsonr(predicted, measured)
-          plot_gene(group, sprrho, prsrho, measured, predicted, plotfile)
+          plot_gene(group, sprrho, prsrho, plotfile)
           result = dict()
           result['model'] = modelkey
           result['target'] = evalkey
