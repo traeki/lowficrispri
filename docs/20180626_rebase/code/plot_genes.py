@@ -73,20 +73,19 @@ def plot_gene(group, sprrho, prsrho, plotfile):
   plt.ylabel('Measured γ')
   template = 'Spearman: {sprrho:.2f}, Pearson: {prsrho:.2f}'
   plt.text(-1.1, 0.1, template.format(**vars()))
-  subgrouper = group.groupby('variant')
-  for variant, subgroup in subgrouper:
-    offset = OFFSETS.loc[variant].offset
-    gene_len = OFFSETS.loc[variant].gene_len
+  subgrouper = group.groupby('original')
+  for original, subgroup in subgrouper:
+    offset = OFFSETS.loc[original].offset
+    gene_len = OFFSETS.loc[original].gene_len
     relative_offset = offset/gene_len
     # enforce boundaries
     if relative_offset > 1:
       relative_offset = 1
     if relative_offset < 0:
       relative_offset = 0
-    color = cc.m_inferno(relative_offset)
     predicted = (subgroup.y_pred + 1) * subgroup.parent
     measured = (subgroup.y_meas + 1) * subgroup.parent
-    g = plt.scatter(predicted, measured, s=3, alpha=0.5, c=color)
+    g = plt.scatter(predicted, measured, s=3, alpha=0.5)
   plt.tight_layout()
   plt.savefig(plotfile)
   plt.close()
@@ -129,7 +128,7 @@ def main():
         X_eval['y_pred'] = preds
         grouper = X_eval.groupby('gene')
         threadlabel = '.'.join([modelkey, 'on', evalkey, poolname])
-        plotdir_suffix = '.' + threadlabel + '.plots'
+        plotdir_suffix = '.' + threadlabel + '.hue.plots'
         plotdir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(plotdir_suffix)
         shutil.rmtree(plotdir, ignore_errors=True)
         plotdir.mkdir(parents=True, exist_ok=True)
