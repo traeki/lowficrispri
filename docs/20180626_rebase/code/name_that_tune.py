@@ -43,8 +43,8 @@ OFFSETS = OFFSETS.drop_duplicates()
 OFFSETS.set_index('variant', inplace=True)
 
 MAX_SAMPLE = 50
-SAMPLE_STEP = 5
-TRIALS = 10
+SAMPLE_STEP = 2
+TRIALS = 5
 
 
 # --------------------
@@ -60,8 +60,8 @@ def downsample_gene(group):
   statblocks = list()
   statblocks.append(downsample_stats(group, gene, gene))
   subgrouper = group.groupby('original')
-  for name, subgroup in subgrouper:
-    statblocks.append(downsample_stats(subgroup, gene, name))
+  for family, subgroup in subgrouper:
+    statblocks.append(downsample_stats(subgroup, gene, family))
   return pd.concat(statblocks, axis=0)
 
 def downsample_stats(group, gene, subset):
@@ -90,7 +90,7 @@ def plot_gene(group, plotfile):
   template = 'Stats by Sample Size'
   main_title_str = template.format(**vars())
   plt.title(main_title_str)
-  plt.xlim(0, 50)
+  plt.xlim(0, MAX_SAMPLE)
   plt.ylim(-1, 1)
   plt.xlabel('Sample Size')
   plt.ylabel('Spearman')
@@ -99,13 +99,20 @@ def plot_gene(group, plotfile):
   plt.savefig(plotfile)
   plt.close()
 
+def clean_frame(frame):
+  frame.fillna('NA', inplace=True)
+  meanframe = frame.reset_index().groupby('variant').transform('mean')
+  frame.y_meas = meanframe.y_meas
+  frame.parent = meanframe.parent
+  frame = frame.reset_index(drop=True).drop('Unnamed: 0', axis=1)
+  frame = frame.drop_duplicates()
+  return frame
+
 def main():
   # read in TEST and TRAIN
   data = dict()
-  data['train'] = pd.read_csv(TRAIN_FILE, sep='\t')
-  data['train'].fillna('NA', inplace=True)
-  data['test'] = pd.read_csv(TEST_FILE, sep='\t')
-  data['test'].fillna('NA', inplace=True)
+  data['train'] = clean_frame(pd.read_csv(TRAIN_FILE, sep='\t'))
+  data['test'] = clean_frame(pd.read_csv(TEST_FILE, sep='\t'))
   data['all'] = pd.concat([data['train'], data['test']], axis=0)
   feat_cols = build_feature_columns(data['train'])
   keys = itertools.product(GUIDESETS, GUIDESETS, data)

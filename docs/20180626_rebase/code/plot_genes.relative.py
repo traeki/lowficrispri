@@ -67,12 +67,12 @@ def plot_gene(group, sprrho, prsrho, plotfile):
   template = 'Predictions vs. Measurements\n{gene}'
   main_title_str = template.format(**vars())
   plt.title(main_title_str)
-  plt.xlim(-1.2, 0.2)
-  plt.ylim(-1.2, 0.2)
-  plt.xlabel('Predicted γ')
-  plt.ylabel('Measured γ')
+  plt.xlim(-1.2, 0.5)
+  plt.ylim(-1.2, 0.5)
+  plt.xlabel('Predicted relative γ')
+  plt.ylabel('Measured relative γ')
   template = 'Spearman: {sprrho:.2f}, Pearson: {prsrho:.2f}'
-  plt.text(-1.1, 0.1, template.format(**vars()))
+  plt.text(0.4, -1.1, template.format(**vars()))
   subgrouper = group.groupby('original')
   for original, subgroup in subgrouper:
     offset = OFFSETS.loc[original].offset
@@ -83,9 +83,11 @@ def plot_gene(group, sprrho, prsrho, plotfile):
       relative_offset = 1
     if relative_offset < 0:
       relative_offset = 0
-    predicted = (subgroup.y_pred + 1) * subgroup.parent
-    measured = (subgroup.y_meas + 1) * subgroup.parent
+    predicted = subgroup.y_pred
+    measured = subgroup.y_meas
     g = plt.scatter(predicted, measured, s=3, alpha=0.5)
+  plt.gca().invert_xaxis()
+  plt.gca().invert_yaxis()
   plt.tight_layout()
   plt.savefig(plotfile)
   plt.close()
@@ -135,7 +137,7 @@ def main():
         X_eval['y_pred'] = preds
         grouper = X_eval.groupby('gene')
         threadlabel = '.'.join([modelkey, 'on', evalkey, poolname])
-        plotdir_suffix = '.' + threadlabel + '.hue.plots'
+        plotdir_suffix = '.' + threadlabel + '.plots'
         plotdir = (gcf.OUTPUT_DIR / CODEFILE).with_suffix(plotdir_suffix)
         shutil.rmtree(plotdir, ignore_errors=True)
         plotdir.mkdir(parents=True, exist_ok=True)
@@ -145,8 +147,8 @@ def main():
           gene = exemplar.gene
           ext = '.' + gene + '.png'
           plotfile = (plotdir / CODEFILE).with_suffix(ext)
-          predicted = (group.y_pred + 1) * group.parent
-          measured = (group.y_meas + 1) * group.parent
+          predicted = group.y_pred
+          measured = group.y_meas
           sprrho, sprpv = st.spearmanr(predicted, measured)
           prsrho, prspv = st.pearsonr(predicted, measured)
           plot_gene(group, sprrho, prsrho, plotfile)
